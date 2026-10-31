@@ -25,6 +25,7 @@ O princípio é: **você prepara e sugere, a pessoa decide.** Nada é gravado no
 | Arquivo | Quando ler |
 |---|---|
 | `references/campos-rd.md` | Na etapa 1, para saber onde está cada informação no card |
+| `references/resumo-card.md` | Na etapa 1, para montar o resumo visual e definir vendedor e representante |
 | `references/omie-fixdoor.md` | Antes de montar ou criar o orçamento na FixDoor |
 | `references/omie-maxdock.md` | Antes de montar ou criar a OS na MaxDock |
 | `references/textos-padrao.md` | Ao montar as observações do orçamento (FixDoor ou MaxDock) |
@@ -50,20 +51,7 @@ Leia **tudo** antes de propor qualquer coisa:
 - `rd_listar_tarefas`: o que já foi pedido ou feito.
 - **Arquivos**: a API do RD não entrega anexos. Pergunte se o card tem arquivos e peça que a pessoa os arraste para a conversa. Veja a seção "Arquivos do card".
 
-Extraia e mostre um **resumo do pedido** neste formato:
-
-```
-CARD: <nome> (id) · Etapa: <etapa> · Vendedor: <responsável>
-CLIENTE: <razão social> · CNPJ <cnpj> · <município>/<UF>
-FISCAL: destino <UF destino> · <contribuinte com IE | não contribuinte> · destinação <ativo | uso e consumo | revenda> · Simples: <sim/não>
-PEDIDO (item solicitado): <o que o cliente pediu, com quantidades e medidas>
-MÃO DE OBRA: <não | sim → equipe: MaxDock | terceiro (nome)> · cotação do terceiro: <valor e onde está | não encontrada>
-FRETE: <FOB | CIF com descarga | CIF sem descarga | nenhum> · cotação: <valor | falta>
-LOCAÇÃO (PTA/MUNC): <o que dizem as observações | nada>
-NOTAS/TAREFAS RELEVANTES: <bullets curtos>
-ARQUIVOS: <lista: nome · tipo · lido/não lido>
-LACUNAS: <o que falta ou está contraditório>
-```
+Monte o **resumo visual do card** seguindo **exatamente** `references/resumo-card.md`. As seções separam o que veio de cada lugar: campos do card, o que vai ser orçado, anotações, tarefas, **um bloco por anexo** e uma lista única de lacunas. No mesmo resumo, defina o **vendedor** e o **representante**: o card manda; sem indicação no card, vale a regra regional (Sul → Renata; Sudeste, Norte e Centro-Oeste → Tom; Nordeste → Ana).
 
 Depois **pare e peça para a pessoa conferir o resumo**. Em pedidos que exigem análise (fotos, levantamento técnico, equipamento novo), essa conferência é o momento em que a pessoa corrige o entendimento. Não pule.
 
