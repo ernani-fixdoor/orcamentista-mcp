@@ -25,6 +25,7 @@ Uma chave errada responde 404. Trate essa URL como senha.
 | `RD_CRM_TOKEN` | Token da API do RD Station CRM |
 | `SUPABASE_URL` | URL do projeto `fixdoor-sistemas` |
 | `SUPABASE_PUBLISHABLE_KEY` | Chave publicável (`sb_publishable_...`) do mesmo projeto |
+| `RD_CLIENT_ID` / `RD_CLIENT_SECRET` | App OAuth do RD App Publisher (API v2, usada para anexos). Callback: `https://orcamentista-fixdoor.vercel.app/<MCP_CHAVE>/rd-oauth` |
 | `ORC_DB_CHAVE` | Chave do Orçamentista no banco; o hash SHA-256 dela fica em `orcamentista.config` (`api_chave_sha256`) |
 
 O conector **não usa a service key**: ele só chama as funções `public.orc_*` (SECURITY DEFINER), que conferem a `ORC_DB_CHAVE`.
@@ -48,5 +49,15 @@ npm run dev
 `rd_buscar_negocios`, `rd_ler_negocio`, `rd_listar_anotacoes`, `rd_listar_tarefas`, `rd_criar_tarefa`,
 `rd_criar_anotacao`, `rd_listar_funis`, `rd_mover_negocio`, `rd_listar_campos`, `rd_atualizar_campos`,
 `rd_consulta_api` (GET livre), `rd_baixar_arquivo`, `consultar_cnpj`, `tabela_buscar_itens`, `calcular_precos`,
-`aplicar_icms`, `aprendizados_listar`, `aprendizado_propor`, `aprendizado_definir_status`, `orcamento_registrar`,
+`rd_renomear_negocio`, `rd_adicionar_numero_titulo`, `rd_anexar_arquivo`, `rd_listar_arquivos`, `rd_excluir_arquivo` (com confirmação),
+`rd_editar_anotacao` (experimental, com confirmação), `aplicar_icms`, `aprendizados_listar`, `aprendizado_propor`, `aprendizado_definir_status`, `orcamento_registrar`,
 `orcamento_historico`.
+
+## RD Station API v2 (anexos)
+
+A API v1 (token) não tem anexos. Para anexar PDFs, o conector usa a v2 com OAuth:
+1. Autorização única: abra `https://orcamentista-fixdoor.vercel.app/<MCP_CHAVE>/rd-oauth` e autorize a conta.
+2. Os tokens ficam em `orcamentista.config` (`rd_oauth_*`). O access token dura 2 h e é renovado sozinho; o refresh token expira se ficar **14 dias sem uso**. Nesse caso, autorize de novo.
+3. Status: `/<MCP_CHAVE>/rd-oauth?status` ou `/<MCP_CHAVE>/saude`.
+
+A v2 não permite excluir anotações nem fixá-las. A edição (`PUT /deals/{id}/notes/{id}`) não é documentada: está como experimental.

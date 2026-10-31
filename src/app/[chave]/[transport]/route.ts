@@ -2,6 +2,7 @@
 import { createMcpHandler } from "mcp-handler";
 import { z } from "zod";
 import * as rd from "../../../lib/rd.ts";
+import * as rdv2 from "../../../lib/rdv2.ts";
 import { consultarCnpj } from "../../../lib/cnpj.ts";
 import { aplicarIcms, buscarItens, calcularPrecos } from "../../../lib/precos.ts";
 import { definirStatusAprendizado, historicoDoNegocio, listarAprendizados, proporAprendizado, registrarOrcamento } from "../../../lib/aprendizado.ts";
@@ -130,6 +131,30 @@ function registrar(server: any) {
         return { content: [{ type: "resource", resource: { uri: url, mimeType: tipo, blob: buf.toString("base64") } }] };
       } catch (e) { return erro(e); }
     });
+
+  // ---------------- RD Station API v2: anexos ----------------
+  server.tool("rd_anexar_arquivo", "Anexa um arquivo ao card (aba de arquivos do RD) a partir de uma URL https. Uso principal: o PDF da proposta gerado pelo Omie (FixDoor: produtos/dfedocs:ObterPedVenda → cPdfPed; MaxDock: servicos/osdocs:ObterOS). Informe nome_arquivo legível, ex.: 'Proposta 5701 - FixDoor.pdf'.",
+    { deal_id: z.string(), url: z.string().url(), nome_arquivo: z.string().optional() },
+    seguro(({ deal_id, url, nome_arquivo }: any) => rdv2.anexarDeUrl(deal_id, url, nome_arquivo)));
+
+  server.tool("rd_listar_arquivos", "Lista os arquivos anexados ao card (nome, id, link).",
+    { deal_id: z.string() },
+    seguro(({ deal_id }: any) => rdv2.listarArquivos(deal_id)));
+
+  server.tool("rd_excluir_arquivo", "EXCLUI permanentemente um arquivo do card. Só use depois de mostrar o nome do arquivo à pessoa e ela confirmar explicitamente; então envie confirmado=true.",
+    { deal_id: z.string(), arquivo_id: z.string(), confirmado: z.boolean() },
+    seguro(async ({ deal_id, arquivo_id, confirmado }: any) => {
+      if (confirmado !== true) throw new Error("Exclusão não confirmada. Mostre o arquivo à pessoa e só repita com confirmado=true se ela autorizar.");
+      await rdv2.excluirArquivo(deal_id, arquivo_id);
+      return { excluido: true, arquivo_id };
+    }));
+
+  server.tool("rd_editar_anotacao", "EXPERIMENTAL: altera o texto de uma anotação do card (a API v2 não documenta essa operação; se o RD recusar, avise e crie uma anotação de correção). Só use depois de mostrar o texto atual e o novo à pessoa e ela confirmar; então envie confirmado=true. O RD não permite EXCLUIR anotações pela API.",
+    { deal_id: z.string(), anotacao_id: z.string(), texto: z.string().min(1), confirmado: z.boolean() },
+    seguro(async ({ deal_id, anotacao_id, texto, confirmado }: any) => {
+      if (confirmado !== true) throw new Error("Edição não confirmada. Mostre o texto atual e o novo à pessoa e só repita com confirmado=true se ela autorizar.");
+      return rdv2.editarAnotacao(deal_id, anotacao_id, texto);
+    }));
 
   // ---------------- Cliente / fiscal ----------------
   server.tool("consultar_cnpj", "Consulta o CNPJ na Receita (BrasilAPI, reserva cnpj.ws): razão social, UF, município, situação, Simples Nacional, MEI e inscrições estaduais quando disponíveis.",

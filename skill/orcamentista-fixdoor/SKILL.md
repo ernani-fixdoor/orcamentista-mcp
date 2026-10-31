@@ -147,16 +147,21 @@ Se faltar cotação de frete, de mão de obra (MaxDock ou terceiro) ou de locaç
    - OS MaxDock → `empresa: "maxdock"` (🟦).
 
    O título fica no padrão da equipe, por exemplo `SIGMA WOOD LTDA | N° 5681 🟧 | N° 1923 🟦`. A ferramenta não repete um número que já esteja no título. Só use `rd_renomear_negocio` se a pessoa pedir outra mudança no nome.
-4. Mova o card para a etapa **APROVAÇÃO** (id `69408c3c404dbe001655f7dd`) com `rd_mover_negocio`. Mova **sempre**, mesmo que o Ernani seja quem está pedindo.
-5. `orcamento_registrar` com `status: "em_aprovacao"`.
-6. Feche com um resumo curto para a pessoa: o que foi criado, o que ficou pendente e os links ou números.
+4. **Anexe o PDF da proposta ao card**, um por orçamento criado:
+   - FixDoor: `omie_executar` `produtos/dfedocs:ObterPedVenda` com `nIdPed` = `codigo_pedido` → campo `cPdfPed` (link temporário).
+   - MaxDock: `servicos/osdocs:ObterOS`. Antes, rode `omie_descrever_operacao` para ver os campos.
+   - Depois chame `rd_anexar_arquivo` com o link e `nome_arquivo` legível, por exemplo `Proposta 5701 - FixDoor.pdf` ou `OS 1923 - MaxDock.pdf`.
+   - Se anexar falhar, porque o RD v2 não está autorizado ou o link expirou, gere o link de novo, tente mais uma vez e avise se não der. A falha no anexo não impede mover o card.
+5. Mova o card para a etapa **APROVAÇÃO** (id `69408c3c404dbe001655f7dd`) com `rd_mover_negocio`. Mova **sempre**, mesmo que o Ernani seja quem está pedindo.
+6. `orcamento_registrar` com `status: "em_aprovacao"`.
+7. Feche com um resumo curto para a pessoa: o que foi criado, o que ficou pendente e os links ou números.
 
 ## Concluído significa
 
 - O orçamento existe no Omie com o ICMS correto, os itens ou serviços corretos e o texto padrão da empresa certa.
 - Mão de obra, frete e locação (PTA/MUNC) estão cobertos a partir do card ou sinalizados para cotação.
 - Cada cotação faltante tem uma tarefa no RD informando que está em andamento.
-- O título do card tem o(s) número(s) do Omie com o emoji da empresa, e o card está na etapa de aprovação do RD.
+- O título do card tem o(s) número(s) do Omie com o emoji da empresa, o PDF da proposta está anexado e o card está na etapa de aprovação do RD.
 - O orçamento está registrado no histórico do Orçamentista.
 
 Se algum item não foi cumprido, diga qual e por quê. Não declare como concluído.
@@ -177,6 +182,13 @@ O objetivo é a skill melhorar com o uso, sem perder o controle.
 - Se a correção parecer uma **regra geral**, use `aprendizado_propor` com uma frase aplicável a outros casos. Exemplos: "Prazo de produção de peças e partes padrão: 3 dias úteis" ou "Cliente X sempre retira em Confins". Avise a pessoa que a regra ficou como proposta.
 - Só rode `aprendizado_definir_status` com "confirmado" quando o Ernani confirmar explicitamente.
 - Não altere a tabela de preços nem os cadastros do Omie para "aprender". Isso será outra etapa.
+
+## Alterações sensíveis no RD (sempre com permissão)
+
+- **Excluir arquivo** (`rd_excluir_arquivo`): mostre o nome do arquivo, pergunte e só envie `confirmado: true` depois do "sim" explícito.
+- **Editar anotação** (`rd_editar_anotacao`, experimental): mostre o texto atual e o novo lado a lado, pergunte e só envie `confirmado: true` depois do "sim". Se o RD recusar, crie uma anotação nova começando com "CORREÇÃO da anotação de <data>:".
+- **Excluir anotação**: o RD não permite pela API. Diga isso e ofereça a anotação de correção.
+- **Fixar anotação**: também não é possível pela API. O PDF anexado substitui a necessidade de fixar um link.
 
 ## Cuidados
 
