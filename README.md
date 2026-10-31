@@ -49,7 +49,7 @@ npm run dev
 `rd_buscar_negocios`, `rd_ler_negocio`, `rd_listar_anotacoes`, `rd_listar_tarefas`, `rd_criar_tarefa`,
 `rd_criar_anotacao`, `rd_listar_funis`, `rd_mover_negocio`, `rd_listar_campos`, `rd_atualizar_campos`,
 `rd_consulta_api` (GET livre), `rd_baixar_arquivo`, `consultar_cnpj`, `tabela_buscar_itens`, `calcular_precos`,
-`rd_renomear_negocio`, `rd_adicionar_numero_titulo`, `rd_anexar_arquivo`, `rd_listar_arquivos`, `rd_excluir_arquivo` (com confirmação),
+`rd_renomear_negocio`, `rd_adicionar_numero_titulo`, `rd_listar_produtos_catalogo`, `rd_definir_valor_produtos`, `rd_listar_produtos_negocio`, `rd_anexar_arquivo`, `rd_listar_arquivos`, `rd_excluir_arquivo` (com confirmação),
 `rd_editar_anotacao` (experimental, com confirmação), `aplicar_icms`, `aprendizados_listar`, `aprendizado_propor`, `aprendizado_definir_status`, `orcamento_registrar`,
 `orcamento_historico`.
 

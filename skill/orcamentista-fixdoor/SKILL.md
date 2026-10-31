@@ -28,6 +28,7 @@ O princípio é: **você prepara e sugere, a pessoa decide.** Nada é gravado no
 | `references/omie-fixdoor.md` | Antes de montar ou criar o orçamento na FixDoor |
 | `references/omie-maxdock.md` | Antes de montar ou criar a OS na MaxDock |
 | `references/textos-padrao.md` | Ao montar as observações do orçamento (FixDoor ou MaxDock) |
+| `references/valor-e-tributos.md` | Na prévia e depois de criar ou revisar o orçamento: valor do card (produtos do RD) e bloco de tributos no PDF |
 | `references/icms.md` | Se precisar explicar ou conferir o ICMS (o cálculo é feito pelo conector) |
 
 ---
@@ -123,9 +124,10 @@ Apresente a **composição sugerida** (itens, quantidades, unitário com ICMS, t
    - texto padrão já preenchido (siga `references/textos-padrao.md`);
    - pendências.
 2. Os campos em branco do texto padrão (prazo de peças, prazo de pagamento) **precisam ser preenchidos**. O prazo de pagamento vem do campo `PRAZO DE PAGAMENTO` do card; os demais, das regras aprendidas. Se não houver, pergunte. Não deixe em branco sem avisar.
-3. Com o **ok explícito**, crie no Omie, seguindo `references/omie-fixdoor.md` e `references/omie-maxdock.md`. Se o cliente não existir no Omie, mostre os dados da Receita e **pergunte antes de cadastrar**.
-4. Confira o resultado: consulte o orçamento criado e compare total e itens com a prévia.
-5. `orcamento_registrar` com `status: "criado_omie"`, os números do Omie, itens e pendências.
+3. Antes de criar o orçamento FixDoor, monte o **bloco de tributos** das observações (ICMS, PIS e COFINS sempre; IPI e ICMS-ST só se houver), com os percentuais do próprio Omie. Veja `references/valor-e-tributos.md`.
+4. Com o **ok explícito**, crie no Omie, seguindo `references/omie-fixdoor.md` e `references/omie-maxdock.md`. Se o cliente não existir no Omie, mostre os dados da Receita e **pergunte antes de cadastrar**.
+5. Confira o resultado: consulte o orçamento criado e compare total e itens com a prévia.
+6. `orcamento_registrar` com `status: "criado_omie"`, os números do Omie, itens e pendências.
 
 ### Etapa 6: Pendências (não pare por causa delas)
 
@@ -147,21 +149,22 @@ Se faltar cotação de frete, de mão de obra (MaxDock ou terceiro) ou de locaç
    - OS MaxDock → `empresa: "maxdock"` (🟦).
 
    O título fica no padrão da equipe, por exemplo `SIGMA WOOD LTDA | N° 5681 🟧 | N° 1923 🟦`. A ferramenta não repete um número que já esteja no título. Só use `rd_renomear_negocio` se a pessoa pedir outra mudança no nome.
-4. **Anexe o PDF da proposta ao card**, um por orçamento criado:
+4. **Valor do card:** lance os produtos do RD com `rd_definir_valor_produtos`, uma linha por categoria, conforme `references/valor-e-tributos.md`. O valor é só o dos produtos e serviços: sem IPI, sem ICMS-ST, sem frete, sem locação. Faça isso também sempre que um orçamento for **revisado**.
+5. **Anexe o PDF da proposta ao card**, um por orçamento criado:
    - FixDoor: `omie_executar` `produtos/dfedocs:ObterPedVenda` com `nIdPed` = `codigo_pedido` → campo `cPdfPed` (link temporário).
    - MaxDock: `servicos/osdocs:ObterOS`. Antes, rode `omie_descrever_operacao` para ver os campos.
    - Depois chame `rd_anexar_arquivo` com o link e `nome_arquivo` legível, por exemplo `Proposta 5701 - FixDoor.pdf` ou `OS 1923 - MaxDock.pdf`.
    - Se anexar falhar, porque o RD v2 não está autorizado ou o link expirou, gere o link de novo, tente mais uma vez e avise se não der. A falha no anexo não impede mover o card.
-5. Mova o card para a etapa **APROVAÇÃO** (id `69408c3c404dbe001655f7dd`) com `rd_mover_negocio`. Mova **sempre**, mesmo que o Ernani seja quem está pedindo.
-6. `orcamento_registrar` com `status: "em_aprovacao"`.
-7. Feche com um resumo curto para a pessoa: o que foi criado, o que ficou pendente e os links ou números.
+6. Mova o card para a etapa **APROVAÇÃO** (id `69408c3c404dbe001655f7dd`) com `rd_mover_negocio`. Mova **sempre**, mesmo que o Ernani seja quem está pedindo.
+7. `orcamento_registrar` com `status: "em_aprovacao"`.
+8. Feche com um resumo curto para a pessoa: o que foi criado, o que ficou pendente e os links ou números.
 
 ## Concluído significa
 
 - O orçamento existe no Omie com o ICMS correto, os itens ou serviços corretos e o texto padrão da empresa certa.
 - Mão de obra, frete e locação (PTA/MUNC) estão cobertos a partir do card ou sinalizados para cotação.
 - Cada cotação faltante tem uma tarefa no RD informando que está em andamento.
-- O título do card tem o(s) número(s) do Omie com o emoji da empresa, o PDF da proposta está anexado e o card está na etapa de aprovação do RD.
+- O valor do card é a soma dos produtos por categoria (sem IPI, ICMS-ST, frete e locação). O título tem o(s) número(s) do Omie com o emoji da empresa. O PDF da proposta, com o bloco de tributos, está anexado. O card está na etapa de aprovação do RD.
 - O orçamento está registrado no histórico do Orçamentista.
 
 Se algum item não foi cumprido, diga qual e por quê. Não declare como concluído.

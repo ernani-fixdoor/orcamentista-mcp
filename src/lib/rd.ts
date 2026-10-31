@@ -11,7 +11,7 @@ function token() {
 }
 
 export async function rd<T = any>(
-  metodo: "GET" | "POST" | "PUT",
+  metodo: "GET" | "POST" | "PUT" | "DELETE",
   caminho: string,
   opcoes: { query?: Record<string, string | number | boolean | undefined>; corpo?: unknown } = {},
 ): Promise<T> {
@@ -141,6 +141,76 @@ export const atualizarCampos = (dealId: string, campos: { custom_field_id: strin
   rd("PUT", `deals/${encodeURIComponent(dealId)}`, {
     corpo: { deal: { deal_custom_fields: campos.map((c) => ({ custom_field_id: c.custom_field_id, value: c.valor })) } },
   });
+
+// ---------- Produtos do card (definem o VALOR da negociação no RD) ----------
+type ProdutoCatalogo = { id: string; nome: string };
+let cacheCatalogo: { em: number; lista: ProdutoCatalogo[] } | null = null;
+export async function catalogoProdutos(): Promise<ProdutoCatalogo[]> {
+  if (cacheCatalogo && Date.now() - cacheCatalogo.em < 600_000) return cacheCatalogo.lista;
+  const r: any = await rd("GET", "products", { query: { limit: 200 } });
+  const lista: ProdutoCatalogo[] = (r?.products ?? []).map((p: any) => ({ id: String(p._id ?? p.id), nome: String(p.name ?? "").trim() }));
+  cacheCatalogo = { em: Date.now(), lista };
+  return lista;
+}
+
+const normalizar = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+
+/** Acha o produto do catálogo pelo id ou pelo nome (sem acento/maiúsculas; aceita trecho único). */
+export async function resolverProduto(ref: string) {
+  const lista = await catalogoProdutos();
+  const porId = lista.find((p) => p.id === ref);
+  if (porId) return porId;
+  const alvo = normalizar(ref);
+  const exato = lista.filter((p) => normalizar(p.nome) === alvo);
+  if (exato.length === 1) return exato[0];
+  const parcial = lista.filter((p) => normalizar(p.nome).includes(alvo));
+  if (parcial.length === 1) return parcial[0];
+  throw new Error(`Produto do RD não identificado: "${ref}". Opções: ${lista.map((p) => p.nome).join(" · ")}`);
+}
+
+export const listarProdutosNegocio = async (dealId: string) => {
+  const r: any = await rd("GET", `deals/${encodeURIComponent(dealId)}/deal_products`);
+  return (r?.deal_products ?? []).map((p: any) => ({ id: String(p._id ?? p.id), produto_id: String(p.product_id), nome: String(p.name ?? "").trim(), quantidade: p.amount, preco: Number(p.price), total: Number(p.total) }));
+};
+
+/**
+ * Define os produtos do card (cada categoria com quantidade 1 e preço = soma dos itens dela).
+ * Atualiza a linha existente do mesmo produto ou cria; com removerOutros, apaga as linhas não informadas.
+ * O RD recalcula o valor da negociação a partir dos produtos.
+ */
+export async function definirProdutosNegocio(dealId: string, itens: { produto: string; valor: number }[], removerOutros = false) {
+  const id = encodeURIComponent(dealId);
+  const antes = await listarProdutosNegocio(dealId);
+  const alvo = new Map<string, { nome: string; valor: number }>();
+  for (const i of itens) {
+    if (!(Number(i.valor) >= 0)) throw new Error(`Valor inválido para "${i.produto}".`);
+    const p = await resolverProduto(i.produto);
+    const atual = alvo.get(p.id);
+    alvo.set(p.id, { nome: p.nome, valor: Math.round(((atual?.valor ?? 0) + Number(i.valor)) * 100) / 100 });
+  }
+  const feitos: string[] = [];
+  for (const [produtoId, { nome, valor }] of alvo) {
+    const corpo = { product_id: produtoId, price: valor, amount: 1, discount: 0, discount_type: "value", recurrence: "spare" };
+    const linhas = antes.filter((l: any) => l.produto_id === produtoId);
+    if (linhas.length) {
+      await rd("PUT", `deals/${id}/deal_products/${encodeURIComponent(linhas[0].id)}`, { corpo });
+      feitos.push(`atualizado: ${nome} = ${valor}`);
+      for (const extra of linhas.slice(1)) { await rd("DELETE", `deals/${id}/deal_products/${encodeURIComponent(extra.id)}`); feitos.push(`removida linha duplicada: ${nome}`); }
+    } else {
+      await rd("POST", `deals/${id}/deal_products`, { corpo });
+      feitos.push(`criado: ${nome} = ${valor}`);
+    }
+  }
+  if (removerOutros) {
+    for (const l of antes.filter((l: any) => !alvo.has(l.produto_id))) {
+      await rd("DELETE", `deals/${id}/deal_products/${encodeURIComponent(l.id)}`);
+      feitos.push(`removido: ${l.nome} (${l.total})`);
+    }
+  }
+  const depois = await listarProdutosNegocio(dealId);
+  const negocio: any = await rd("GET", `deals/${id}`);
+  return { feitos, antes, depois, valor_do_card: negocio?.amount_total ?? null };
+}
 
 export const renomearNegocio = (dealId: string, nome: string) =>
   rd("PUT", `deals/${encodeURIComponent(dealId)}`, { corpo: { deal: { name: nome } } });

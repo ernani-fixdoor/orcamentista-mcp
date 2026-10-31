@@ -99,6 +99,18 @@ function registrar(server: any) {
       return { alterado: true, antes: atual?.name, depois: depois?.name ?? novo };
     }));
 
+  server.tool("rd_listar_produtos_catalogo", "Lista os produtos cadastrados no RD (categorias usadas para o valor do card): Peças e Partes - Porta Seccional, Portas Seccionais - Equip. Novos, Serviços - MaxDock etc.",
+    {},
+    seguro(() => rd.catalogoProdutos()));
+
+  server.tool("rd_definir_valor_produtos", "Define os PRODUTOS do card e, com isso, o VALOR da negociação (o RD soma os produtos). Uma linha por categoria do catálogo, quantidade 1, valor = soma dos itens daquela categoria. Os valores devem ser SÓ o valor dos produtos/serviços: SEM IPI, SEM ICMS-ST, SEM frete e SEM itens de locação. Use remover_outros=true na criação do orçamento ou quando a pessoa confirmar que as linhas antigas devem sair.",
+    { deal_id: z.string(), produtos: z.array(z.object({ produto: z.string().describe("Nome ou id do produto do catálogo do RD"), valor: z.number() })).min(1), remover_outros: z.boolean().default(false) },
+    seguro(({ deal_id, produtos, remover_outros }: any) => rd.definirProdutosNegocio(deal_id, produtos, remover_outros)));
+
+  server.tool("rd_listar_produtos_negocio", "Lista os produtos já lançados no card (categoria, preço, total).",
+    { deal_id: z.string() },
+    seguro(({ deal_id }: any) => rd.listarProdutosNegocio(deal_id)));
+
   server.tool("rd_listar_campos", "Lista os campos personalizados de negócio do RD (id, rótulo, tipo, opções).",
     {},
     seguro(async () => {
