@@ -37,17 +37,17 @@ O princípio é: **você prepara e sugere, a pessoa decide.** Nada é gravado no
 ### Etapa 0: Preparar
 
 1. Rode `aprendizados_listar`. As regras confirmadas ali **valem como parte desta skill** e, em caso de conflito, prevalecem sobre o texto abaixo, porque são correções do próprio Ernani.
-2. Identifique o card. Se a pessoa deu o nome do cliente, use `rd_buscar_negocios`. Se vier mais de um, mostre a lista e pergunte qual é.
+2. Identifique o card. Se a pessoa deu o nome do cliente, use `rd_buscar_negocios`. Se vier mais de um, mostre a lista e pergunte qual é. Se ela pedir "o que tem para orçar", liste a etapa ORÇAMENTO (`etapa_id` `6893ae5d35e1060014fea7ac`).
 3. Rode `orcamento_historico` com o id do card. Se já existir orçamento registrado, diga o que já foi feito e pergunte se é para continuar, revisar ou começar de novo.
 
 ### Etapa 1: Ler o card inteiro
 
 Leia **tudo** antes de propor qualquer coisa:
 
-- `rd_ler_negocio`: campos do card.
+- `rd_ler_negocio`: campos do card. CNPJ, ESTADO, contribuinte e IE estão em `empresa.campos`; o resto está em `campos_personalizados`. Veja `references/campos-rd.md`.
 - `rd_listar_anotacoes`: o histórico completo. Cotações de terceiros e de frete costumam estar aqui.
 - `rd_listar_tarefas`: o que já foi pedido ou feito.
-- **Arquivos**: veja a seção "Arquivos do card" abaixo.
+- **Arquivos**: a API do RD não entrega anexos. Pergunte se o card tem arquivos e peça que a pessoa os arraste para a conversa. Veja a seção "Arquivos do card".
 
 Extraia e mostre um **resumo do pedido** neste formato:
 
@@ -108,8 +108,9 @@ Apresente a **composição sugerida** (itens, quantidades, unitário com ICMS, t
 ### Etapa 4: Frete e locação
 
 - **FOB**: o texto padrão diz FOB, com retirada em Pinhais/PR. No Omie, frete com modalidade "1". Não precisa cotação.
-- **CIF**: o frete **precisa ser cotado**. Diga se é **com** ou **sem** descarga (vem do card). Se a cotação estiver nas anotações, use. Se não estiver, é pendência. No Omie, modalidade "0", com `valor_frete` quando houver.
-- **Nenhum**: modalidade "9".
+- **INDICAÇÃO** (valor do card): FOB com indicação para faturamento direto entre a transportadora e o cliente. No Omie, modalidade "1".
+- **CIF**: o frete **precisa ser cotado**. Diga se é **com** ou **sem** descarga: procure nas anotações; se não estiver lá, pergunte. Se a cotação estiver nas anotações, use. Se não estiver, é pendência. No Omie, modalidade "0", com `valor_frete` quando houver.
+- **NÃO** (sem frete): modalidade "9".
 - **Locação (PTA, MUNC)**: leia as observações. Se o card pede o equipamento, é uma cotação externa: use o valor das notas ou deixe pendente. Se o cliente fornece o equipamento, mantenha a frase padrão "Cliente deve fornecer PTA...".
 
 ### Etapa 5: Prévia e criação no Omie
@@ -121,7 +122,7 @@ Apresente a **composição sugerida** (itens, quantidades, unitário com ICMS, t
    - parcelas e condição;
    - texto padrão já preenchido (siga `references/textos-padrao.md`);
    - pendências.
-2. Os campos em branco do texto padrão (prazo de peças, prazo de pagamento) **precisam ser preenchidos**. Use o valor que estiver nas regras aprendidas. Se não houver, pergunte. Não deixe em branco sem avisar.
+2. Os campos em branco do texto padrão (prazo de peças, prazo de pagamento) **precisam ser preenchidos**. O prazo de pagamento vem do campo `PRAZO DE PAGAMENTO` do card; os demais, das regras aprendidas. Se não houver, pergunte. Não deixe em branco sem avisar.
 3. Com o **ok explícito**, crie no Omie, seguindo `references/omie-fixdoor.md` e `references/omie-maxdock.md`. Se o cliente não existir no Omie, mostre os dados da Receita e **pergunte antes de cadastrar**.
 4. Confira o resultado: consulte o orçamento criado e compare total e itens com a prévia.
 5. `orcamento_registrar` com `status: "criado_omie"`, os números do Omie, itens e pendências.
@@ -140,9 +141,10 @@ Se faltar cotação de frete, de mão de obra (MaxDock ou terceiro) ou de locaç
    - total;
    - alíquota de ICMS e cenário;
    - pendências e tarefas criadas.
-2. Mova o card para a **etapa de aprovação** com `rd_mover_negocio`. O id da etapa está em `references/campos-rd.md`; se não estiver, use `rd_listar_funis` e confirme com a pessoa qual é. Mova **sempre**, mesmo que o Ernani seja quem está pedindo.
-3. `orcamento_registrar` com `status: "em_aprovacao"`.
-4. Feche com um resumo curto para a pessoa: o que foi criado, o que ficou pendente e os links ou números.
+2. Se houver orçamento FixDoor, preencha o campo `N° DO PEDIDO DE VENDA` com `rd_atualizar_campos` (id `6acf88980eb7250022f0de8d`, valor = `numero_pedido` do Omie).
+3. Mova o card para a etapa **APROVAÇÃO** (id `69408c3c404dbe001655f7dd`) com `rd_mover_negocio`. Mova **sempre**, mesmo que o Ernani seja quem está pedindo.
+4. `orcamento_registrar` com `status: "em_aprovacao"`.
+5. Feche com um resumo curto para a pessoa: o que foi criado, o que ficou pendente e os links ou números.
 
 ## Concluído significa
 
@@ -160,9 +162,8 @@ Os cards trazem imagens e, normalmente, um documento que ajuda no orçamento (fo
 1. **Sempre liste** os arquivos (nome e tipo).
 2. **Sempre leia o documento principal** (PDF, planilha ou formulário), porque é ele que define o escopo.
 3. **Abra as fotos só quando** o escopo estiver ambíguo, for equipamento novo ou levantamento técnico, ou a pessoa pedir. Abra no máximo 4 por vez e diga o que viu em cada uma.
-4. Se o conector não conseguir acessar os anexos, peça que a pessoa arraste os arquivos para a conversa.
 
-Para achar os anexos, use `rd_ler_negocio` com `bruto: true` e `rd_consulta_api`. Depois `rd_baixar_arquivo` pela URL.
+A API do RD **não entrega os anexos**. Os arquivos chegam quando a pessoa os arrasta para a conversa. Se ela mandar um link público de arquivo, use `rd_baixar_arquivo`.
 
 ## Aprender
 

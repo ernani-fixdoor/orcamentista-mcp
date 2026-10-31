@@ -1,6 +1,6 @@
 // Cliente da API v1 do RD Station CRM (https://crm.rdstation.com/api/v1, autenticação por ?token=).
-// Ainda não testado contra a conta real: as respostas brutas ficam disponíveis (rd_consulta_api)
-// para ajustarmos os formatos depois do primeiro teste.
+// Conferido com a conta da FixDoor. A API v1 NÃO expõe anexos/arquivos dos cards.
+// CNPJ, ESTADO, IE e contribuinte ficam nos campos da EMPRESA (organization_custom_fields).
 
 const BASE = "https://crm.rdstation.com/api/v1";
 
@@ -34,11 +34,31 @@ export async function rd<T = any>(
   }
 }
 
-/** Campos personalizados do negócio como { "Rótulo": valor }. */
+// Rótulos dos campos personalizados (os da empresa vêm só com o id) e nomes dos usuários. Cache de 10 min.
+let cacheRotulos: { em: number; mapa: Record<string, string> } | null = null;
+async function rotulos(): Promise<Record<string, string>> {
+  if (cacheRotulos && Date.now() - cacheRotulos.em < 600_000) return cacheRotulos.mapa;
+  const r: any = await rd("GET", "custom_fields");
+  const lista = Array.isArray(r) ? r : r?.custom_fields ?? [];
+  const mapa = Object.fromEntries(lista.map((c: any) => [String(c._id ?? c.id), String(c.label ?? "").trim()]));
+  cacheRotulos = { em: Date.now(), mapa };
+  return mapa;
+}
+let cacheUsuarios: { em: number; mapa: Record<string, string> } | null = null;
+async function usuarios(): Promise<Record<string, string>> {
+  if (cacheUsuarios && Date.now() - cacheUsuarios.em < 600_000) return cacheUsuarios.mapa;
+  const r: any = await rd("GET", "users");
+  const lista = Array.isArray(r) ? r : r?.users ?? [];
+  const mapa = Object.fromEntries(lista.map((u: any) => [String(u._id ?? u.id), String(u.name ?? "")]));
+  cacheUsuarios = { em: Date.now(), mapa };
+  return mapa;
+}
+
+/** Campos personalizados como { "Rótulo": valor }. */
 function camposPersonalizados(deal: any): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const c of deal?.deal_custom_fields ?? []) {
-    const rotulo = c?.custom_field?.label ?? c?.custom_field_id ?? "campo";
+    const rotulo = c?.custom_field?.label ?? deal?._rotulos?.[c?.custom_field_id] ?? c?.custom_field_id ?? "campo";
     out[String(rotulo)] = c?.value ?? null;
   }
   return out;
@@ -52,7 +72,7 @@ export function resumirNegocio(d: any) {
     etapa: d?.deal_stage ? { id: d.deal_stage._id ?? d.deal_stage.id, nome: d.deal_stage.name } : null,
     funil: d?.deal_stage?.deal_pipeline ? { id: d.deal_stage.deal_pipeline._id ?? d.deal_stage.deal_pipeline.id, nome: d.deal_stage.deal_pipeline.name } : null,
     responsavel: d?.user ? { id: d.user._id ?? d.user.id, nome: d.user.name, email: d.user.email } : null,
-    empresa: d?.organization ? { id: d.organization._id ?? d.organization.id, nome: d.organization.name, campos: camposPersonalizados({ deal_custom_fields: d.organization.organization_custom_fields }) } : null,
+    empresa: d?.organization ? { id: d.organization._id ?? d.organization.id, nome: d.organization.name, campos: camposPersonalizados({ deal_custom_fields: d.organization.organization_custom_fields, _rotulos: d._rotulos }) } : null,
     contatos: (d?.contacts ?? []).map((c: any) => ({
       nome: c.name, cargo: c.title,
       emails: (c.emails ?? []).map((e: any) => e.email),
@@ -69,9 +89,21 @@ export function resumirNegocio(d: any) {
 export const buscarNegocios = (o: { nome?: string; etapa_id?: string; pagina?: number; limite?: number }) =>
   rd("GET", "deals", { query: { name: o.nome, deal_stage_id: o.etapa_id, page: o.pagina ?? 1, limit: Math.min(o.limite ?? 20, 200) } });
 
-export const lerNegocio = (id: string) => rd("GET", `deals/${encodeURIComponent(id)}`);
+/** Lê o negócio já com os rótulos dos campos da empresa (CNPJ, ESTADO, IE, contribuinte...). */
+export async function lerNegocio(id: string) {
+  const d: any = await rd("GET", `deals/${encodeURIComponent(id)}`);
+  try { d._rotulos = await rotulos(); } catch { /* sem rótulos: os campos da empresa aparecem pelo id */ }
+  return d;
+}
 
-export const listarAnotacoes = (dealId: string) => rd("GET", "activities", { query: { deal_id: dealId, limit: 200 } });
+/** Anotações com o nome do autor. */
+export async function listarAnotacoes(dealId: string) {
+  const r: any = await rd("GET", "activities", { query: { deal_id: dealId, limit: 200 } });
+  let nomes: Record<string, string> = {};
+  try { nomes = await usuarios(); } catch { /* segue sem nomes */ }
+  for (const a of r?.activities ?? []) if (!a.user && a.user_id) a.user = { name: nomes[a.user_id] ?? a.user_id };
+  return r;
+}
 
 export const listarTarefas = (dealId: string) => rd("GET", "tasks", { query: { deal_id: dealId, limit: 200 } });
 
