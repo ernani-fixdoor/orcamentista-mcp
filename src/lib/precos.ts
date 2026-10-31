@@ -1,6 +1,6 @@
 // Tabela de preços FixDoor (Supabase, public.precos_*) + cálculo de ICMS. Por enquanto só CLIENTE FINAL.
 import { calcular, comIcms, descreverCenario, origemImportada, ORIGENS, precoLiquido, type Cenario } from "./icms.ts";
-import { numOuNull, sb } from "./supabase.ts";
+import { numOuNull, rpc } from "./supabase.ts";
 
 export interface ItemTabela {
   id: number;
@@ -18,16 +18,13 @@ export interface ItemTabela {
   notas_revisao: string | null;
 }
 
-const CAMPOS = "id,codigo,codigo_produto_omie,descricao,unidade,linha,grupo,custo,peso,origem,observacao,revisar,notas_revisao";
-
 function normalizar(r: any): ItemTabela {
   return { ...r, custo: numOuNull(r.custo), peso: numOuNull(r.peso), codigo_produto_omie: numOuNull(r.codigo_produto_omie), origem: r.origem === "" ? null : r.origem };
 }
 
 /** CMV do cliente final (precos_parametros.chave = "cmv"). */
 export async function cmvFinal(): Promise<number> {
-  const r = await sb<any[]>("precos_parametros?chave=eq.cmv&select=valor");
-  const v = Number(r?.[0]?.valor);
+  const v = Number(await rpc("orc_cmv"));
   if (!(v > 0)) throw new Error("CMV do cliente final não encontrado em precos_parametros (chave 'cmv').");
   return v;
 }
@@ -43,16 +40,10 @@ export function alertasDoItem(p: ItemTabela): string[] {
 }
 
 export async function buscarItens(o: { texto?: string; codigo?: string; ids?: number[]; grupo?: string; limite?: number }) {
-  const filtros = ["ativo=eq.true"];
-  if (o.ids?.length) filtros.push(`id=in.(${o.ids.map(Number).join(",")})`);
-  if (o.codigo) filtros.push(`or=(codigo.eq.${encodeURIComponent(o.codigo)},codigo_produto_omie.eq.${Number(o.codigo) || 0})`);
-  if (o.grupo) filtros.push(`grupo=ilike.*${encodeURIComponent(o.grupo)}*`);
-  if (o.texto) {
-    // cada palavra precisa aparecer na descrição (busca simples e tolerante à ordem)
-    for (const p of o.texto.split(/\s+/).filter(Boolean).slice(0, 6)) filtros.push(`descricao=ilike.*${encodeURIComponent(p)}*`);
-  }
-  const limite = Math.min(Math.max(o.limite ?? 20, 1), 100);
-  const rows = await sb<any[]>(`precos_produtos?select=${CAMPOS}&${filtros.join("&")}&order=ordem.asc,id.asc&limit=${limite}`);
+  const rows = await rpc<any[]>("orc_itens", {
+    p_texto: o.texto || null, p_codigo: o.codigo || null, p_grupo: o.grupo || null,
+    p_ids: o.ids?.length ? o.ids.map(Number) : null, p_limite: o.limite ?? 20,
+  });
   const cmv = await cmvFinal();
   return {
     cmv_cliente_final: cmv,
@@ -73,14 +64,14 @@ export async function calcularPrecos(cenario: Cenario, itens: PedidoItem[]) {
   const ids = itens.filter((i) => i.id != null).map((i) => Number(i.id));
   const porId = new Map<number, ItemTabela>();
   if (ids.length) {
-    const rows = await sb<any[]>(`precos_produtos?select=${CAMPOS}&id=in.(${ids.join(",")})`);
+    const rows = await rpc<any[]>("orc_itens", { p_ids: ids, p_limite: 200 });
     for (const r of rows) porId.set(Number(r.id), normalizar(r));
   }
   const linhas = [];
   for (const i of itens) {
     let p: ItemTabela | undefined = i.id != null ? porId.get(Number(i.id)) : undefined;
     if (!p && i.codigo) {
-      const r = await sb<any[]>(`precos_produtos?select=${CAMPOS}&ativo=eq.true&codigo=eq.${encodeURIComponent(i.codigo)}&limit=2`);
+      const r = await rpc<any[]>("orc_itens", { p_codigo: i.codigo, p_limite: 2 });
       if (r.length > 1) {
         linhas.push({ pedido: i, erro: `Código ${i.codigo} tem mais de uma linha na tabela (ex.: nacional x importado). Informe o id.` });
         continue;

@@ -24,9 +24,14 @@ Uma chave errada responde 404. Trate essa URL como senha.
 | `MCP_CHAVE` | Chave secreta da URL, com pelo menos 16 caracteres (`openssl rand -hex 24`) |
 | `RD_CRM_TOKEN` | Token da API do RD Station CRM |
 | `SUPABASE_URL` | URL do projeto `fixdoor-sistemas` |
-| `SUPABASE_SERVICE_KEY` | Chave secreta (service_role / sb_secret) do mesmo projeto |
+| `SUPABASE_PUBLISHABLE_KEY` | Chave publicável (`sb_publishable_...`) do mesmo projeto |
+| `ORC_DB_CHAVE` | Chave do Orçamentista no banco; o hash SHA-256 dela fica em `orcamentista.config` (`api_chave_sha256`) |
 
-No Supabase, o schema `orcamentista` precisa estar em **Project Settings › Data API › Exposed schemas**.
+O conector **não usa a service key**: ele só chama as funções `public.orc_*` (SECURITY DEFINER), que conferem a `ORC_DB_CHAVE`.
+Elas leem a tabela de preços (só leitura) e gravam o histórico e os aprendizados no schema `orcamentista`.
+Para trocar a chave, gere uma nova, grave o hash com
+`update orcamentista.config set valor = encode(sha256(convert_to('<nova>','UTF8')),'hex') where chave='api_chave_sha256';`
+e atualize `ORC_DB_CHAVE` na Vercel.
 
 ## Desenvolvimento
 
@@ -34,7 +39,8 @@ No Supabase, o schema `orcamentista` precisa estar em **Project Settings › Dat
 npm install
 npm test          # regras de ICMS
 npm run build
-MCP_CHAVE=... RD_CRM_TOKEN=... SUPABASE_URL=... SUPABASE_SERVICE_KEY=... npm run dev
+cp .env.example .env.local   # preencha
+npm run dev
 ```
 
 ## Ferramentas
