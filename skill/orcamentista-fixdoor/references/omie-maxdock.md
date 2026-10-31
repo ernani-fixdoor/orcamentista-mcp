@@ -14,7 +14,7 @@ O mesmo cliente precisa existir **também no Omie da MaxDock**: os cadastros sã
 |---|---|---|
 | `Cabecalho.cCodIntOS` | `OS-RD-<deal_id>-<AAAAMMDDhhmm>` | obrigatório |
 | `Cabecalho.nCodCli` | código do cliente na MaxDock | |
-| `Cabecalho.nCodVend` | vendedor definido no resumo | ver `resumo-card.md`; a OS 1923 usou 5547276019 |
+| `Cabecalho.nCodVend` | **por enquanto, vazio** (códigos ainda indisponíveis) | ver `resumo-card.md` |
 | `Cabecalho.cEtapa` | `"00"` | orçamento (como a OS 1923) |
 | `Cabecalho.dDtPrevisao` | hoje + 15 dias | DD/MM/AAAA |
 | `Cabecalho.cCodParc` / `nQtdeParc` | conforme condição de pagamento | |

@@ -25,7 +25,7 @@ Valores vistos em 30/10/2026 (referência, não fixos):
 | `informacoes_adicionais.codigo_conta_corrente` | `5617177019` (também aparece `1868394193`) | copie do orçamento recente; em dúvida, pergunte |
 | `informacoes_adicionais.consumidor_final` | `"S"` se não contribuinte ou uso e consumo; `"N"` se revenda | confirme com a pessoa em caso de dúvida |
 | `informacoes_adicionais.enviar_email` | `"N"` | o envio ao cliente é outra etapa |
-| `informacoes_adicionais.codVend` | vendedor definido no resumo (card ou regra regional) | ver "Vendedor do orçamento" em `resumo-card.md`; códigos já vistos: 5591558335, 5498835689, 5502322784 (confirme qual é de quem) |
+| `informacoes_adicionais.codVend` | **por enquanto, vazio** (códigos ainda indisponíveis) | ver "Vendedor do orçamento" em `resumo-card.md` |
 | `cabecalho.codigo_cenario_impostos` e `det[].inf_adic.codigo_cenario_impostos_item` | `5630354603` ou `5616661330` (os dois aparecem em out/2026) | copie do orçamento recente; em dúvida, pergunte |
 | `det[].produto.codigo_produto` | `codigo_produto_omie` da tabela | sem código → não lança; pendência |
 | `det[].produto.valor_unitario` | unitário **com ICMS** de `calcular_precos` | |

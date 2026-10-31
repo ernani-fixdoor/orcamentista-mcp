@@ -110,8 +110,7 @@ Legenda de status, usada em todas as tabelas:
    | Nordeste | MA, PI, CE, RN, PB, PE, AL, SE, BA | **Ana** |
 
 3. Se o card indicar um vendedor diferente da regra regional, **siga o card** e só comente ("card indica Ana; pela região seria Tom").
-4. **No Omie**, o vendedor vai em `informacoes_adicionais.codVend` (FixDoor) ou `Cabecalho.nCodVend` (MaxDock):
-   - tente `geral/vendedores:ListarVendedores` para achar o código pelo nome;
-   - se o Omie negar acesso ("cadastro de vendedores não pode ser acessado"), use o código guardado nas regras aprendidas;
-   - se ainda não houver código guardado, pergunte o código ou se pode deixar sem vendedor. Depois **registre o código como aprendizado** (categoria "omie", ex.: "Vendedor Tom = codVend 5591558335 na FixDoor").
-5. Onde registrar o **representante** no Omie: pergunte na primeira vez (por exemplo, no campo `contato` do pedido ou nas observações) e registre como aprendizado.
+4. **No Omie**, representante não é um campo separado. Cada representante é um **vendedor próprio**, cadastrado como o vendedor principal mais o nome do representante (ex.: "Tom" e "Tom + <representante>"). Na hora de lançar no Omie, o vendedor é:
+   - o vendedor sozinho, quando não há representante;
+   - o cadastro "vendedor + representante", quando há.
+5. **Por enquanto, não preencha o vendedor no Omie.** Os códigos dos vendedores ainda não estão disponíveis, porque o usuário não tem acesso ao cadastro. Deixe `codVend`/`nCodVend` vazio e mostre na prévia uma linha "Vendedor no Omie: <nome> (preencher manualmente)". Quando houver regra aprendida com os códigos (categoria "omie"), passe a usá-la.
