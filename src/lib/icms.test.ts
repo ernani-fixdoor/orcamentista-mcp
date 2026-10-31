@@ -40,3 +40,15 @@ test("ICMS por dentro", () => {
   assert.equal(comIcms(100, 12), 113.64);
   assert.equal(comIcms(20.57, 19.5), 25.55);
 });
+
+import { tituloComNumero } from "./rd.ts";
+test("título do card no padrão da equipe", () => {
+  assert.equal(tituloComNumero("A.L. BRAZ ALIMENTOS LTDA  ", "fixdoor", "5701"), "A.L. BRAZ ALIMENTOS LTDA | N° 5701 🟧");
+  assert.equal(tituloComNumero("SIGMA WOOD LTDA | Nº 5681 🟧", "maxdock", 1923), "SIGMA WOOD LTDA | Nº 5681 🟧 | N° 1923 🟦");
+  assert.equal(tituloComNumero("PRECISAO | N°5695 🟧", "fixdoor", "5695"), "PRECISAO | N°5695 🟧");
+  assert.equal(tituloComNumero("X | N° 56950 🟧", "fixdoor", "5695"), "X | N° 56950 🟧 | N° 5695 🟧");
+});
+
+test("título: zeros à esquerda contam como o mesmo número", () => {
+  assert.equal(tituloComNumero("NUTRIPOLLO | N°0510 🟧", "fixdoor", "510"), "NUTRIPOLLO | N°0510 🟧");
+});

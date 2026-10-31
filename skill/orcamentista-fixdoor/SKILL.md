@@ -142,16 +142,21 @@ Se faltar cotação de frete, de mão de obra (MaxDock ou terceiro) ou de locaç
    - alíquota de ICMS e cenário;
    - pendências e tarefas criadas.
 2. Se houver orçamento FixDoor, preencha o campo `N° DO PEDIDO DE VENDA` com `rd_atualizar_campos` (id `6acf88980eb7250022f0de8d`, valor = `numero_pedido` do Omie).
-3. Mova o card para a etapa **APROVAÇÃO** (id `69408c3c404dbe001655f7dd`) com `rd_mover_negocio`. Mova **sempre**, mesmo que o Ernani seja quem está pedindo.
-4. `orcamento_registrar` com `status: "em_aprovacao"`.
-5. Feche com um resumo curto para a pessoa: o que foi criado, o que ficou pendente e os links ou números.
+3. Coloque o número no **título do card** com `rd_adicionar_numero_titulo`, uma chamada por orçamento criado:
+   - pedido FixDoor → `empresa: "fixdoor"` (🟧);
+   - OS MaxDock → `empresa: "maxdock"` (🟦).
+
+   O título fica no padrão da equipe, por exemplo `SIGMA WOOD LTDA | N° 5681 🟧 | N° 1923 🟦`. A ferramenta não repete um número que já esteja no título. Só use `rd_renomear_negocio` se a pessoa pedir outra mudança no nome.
+4. Mova o card para a etapa **APROVAÇÃO** (id `69408c3c404dbe001655f7dd`) com `rd_mover_negocio`. Mova **sempre**, mesmo que o Ernani seja quem está pedindo.
+5. `orcamento_registrar` com `status: "em_aprovacao"`.
+6. Feche com um resumo curto para a pessoa: o que foi criado, o que ficou pendente e os links ou números.
 
 ## Concluído significa
 
 - O orçamento existe no Omie com o ICMS correto, os itens ou serviços corretos e o texto padrão da empresa certa.
 - Mão de obra, frete e locação (PTA/MUNC) estão cobertos a partir do card ou sinalizados para cotação.
 - Cada cotação faltante tem uma tarefa no RD informando que está em andamento.
-- O card está na etapa de aprovação do RD.
+- O título do card tem o(s) número(s) do Omie com o emoji da empresa, e o card está na etapa de aprovação do RD.
 - O orçamento está registrado no histórico do Orçamentista.
 
 Se algum item não foi cumprido, diga qual e por quê. Não declare como concluído.

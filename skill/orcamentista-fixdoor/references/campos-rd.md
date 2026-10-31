@@ -59,3 +59,15 @@ Não há campo próprio. Procure nas anotações, em `DESCRIÇÃO DO SERVIÇO` e
 A API do RD Station **não entrega os anexos** dos cards. Não existe rota de arquivos, e as anotações vêm só como texto. Por isso:
 - pergunte se o card tem arquivos (fotos, formulário técnico, levantamento);
 - se tiver, peça que a pessoa **arraste os arquivos para a conversa**. Siga a regra de leitura do SKILL.md: o documento sempre; as fotos quando necessário.
+
+## Título do card
+
+O padrão da equipe é `NOME DO CLIENTE | N° <número> <emoji>`, com um bloco por orçamento:
+
+| Emoji | Significado | Exemplo |
+|---|---|---|
+| 🟧 | pedido de venda **FixDoor** (56xx) | `PRECISAO | N° 5695 🟧` |
+| 🟦 | OS **MaxDock** (19xx) | `SIGMA WOOD LTDA | Nº 5681 🟧 | Nº 1923 🟦` |
+| 🟩 | pedido **Fast & Safe** (2xx), fora deste processo | `KLABIN SA - Ortigueira | Nº 273 🟩` |
+
+Use `rd_adicionar_numero_titulo`: ele acrescenta o bloco, não repete um número que já esteja no título e remove os espaços sobrando no fim.

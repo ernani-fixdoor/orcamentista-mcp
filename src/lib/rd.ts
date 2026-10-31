@@ -142,6 +142,26 @@ export const atualizarCampos = (dealId: string, campos: { custom_field_id: strin
     corpo: { deal: { deal_custom_fields: campos.map((c) => ({ custom_field_id: c.custom_field_id, value: c.valor })) } },
   });
 
+export const renomearNegocio = (dealId: string, nome: string) =>
+  rd("PUT", `deals/${encodeURIComponent(dealId)}`, { corpo: { deal: { name: nome } } });
+
+/** Emoji de cada empresa no título do card: pedido FixDoor 🟧, OS MaxDock 🟦, pedido Fast & Safe 🟩. */
+export const EMOJI_EMPRESA = { fixdoor: "🟧", maxdock: "🟦", fast: "🟩" } as const;
+export type EmpresaTitulo = keyof typeof EMOJI_EMPRESA;
+
+/**
+ * Acrescenta " | N° <numero> <emoji>" ao título, no padrão da equipe ("CLIENTE | N° 5695 🟧 | N° 1923 🟦").
+ * Se o número já estiver no título, não repete. Remove espaços sobrando no fim.
+ */
+export function tituloComNumero(atual: string, empresa: EmpresaTitulo, numero: string | number): string {
+  const n = String(numero).trim();
+  if (!/^\d+$/.test(n)) throw new Error(`Número inválido: "${numero}"`);
+  const semZeros = n.replace(/^0+(?=\d)/, "");
+  const base = String(atual ?? "").replace(/\s+$/, "");
+  if (new RegExp(`N[°º]\\s*0*${semZeros}(?!\\d)`).test(base)) return base;
+  return `${base} | N° ${n} ${EMOJI_EMPRESA[empresa]}`;
+}
+
 /** Próximo dia útil (seg–sex) a partir de hoje, no fuso de São Paulo, no formato AAAA-MM-DD. */
 export function proximoDiaUtil(base = new Date()): string {
   const sp = new Date(base.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));

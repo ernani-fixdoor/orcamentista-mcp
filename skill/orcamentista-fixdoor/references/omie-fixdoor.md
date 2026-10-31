@@ -1,4 +1,4 @@
-# Omie FixDoor: orçamento = pedido de venda na 1ª coluna (etapa "10")
+# Omie FixDoor: orçamento = pedido de venda na etapa "00" (orçamento)
 
 `app_hash`: `fixdoor-918f968`. Sempre rode `omie_descrever_operacao` antes da primeira inclusão da sessão: os campos podem mudar.
 
@@ -10,21 +10,23 @@
 
 ## 2. Inclusão: `produtos/pedido:IncluirPedido`
 
-Padrões observados nos orçamentos da FixDoor (confirme na primeira vez e registre como aprendizado se mudar):
+Os orçamentos atuais da equipe (pedidos 56xx, out/2026) ficam na **etapa "00"**. Categoria, conta corrente e cenário fiscal **variam**. Por isso, antes de incluir, consulte o orçamento mais recente da FixDoor em etapa "00" (`ListarPedidos` com `apenas_resumo: "S"`, `ordem_descrescente: "S"`) e use os mesmos valores. Mostre esses valores na prévia; depois de confirmados, registre-os como aprendizado (categoria "omie").
+
+Valores vistos em 30/10/2026 (referência, não fixos):
 
 | Campo | Valor usual | Observação |
 |---|---|---|
-| `cabecalho.etapa` | `"10"` | 1ª coluna = orçamento/proposta |
+| `cabecalho.etapa` | `"00"` | orçamento (como os pedidos 5695, 5698 e 5699) |
 | `cabecalho.codigo_pedido_integracao` | `ORC-RD-<deal_id>-<AAAAMMDDhhmm>` | obrigatório; serve para achar o orçamento depois e evitar duplicidade |
 | `cabecalho.codigo_cliente` | código do cliente no Omie | |
 | `cabecalho.data_previsao` | hoje + 15 dias (validade) | formato DD/MM/AAAA |
 | `cabecalho.codigo_parcela` | conforme condição (ex.: `"A45"` = 45 dias) | `"000"` é recusado; liste com `produtos/formaspagvendas` se precisar |
-| `informacoes_adicionais.codigo_categoria` | `"1.01.03"` (venda de produtos) | `"1.01.99"` também aparece; pergunte se houver dúvida |
-| `informacoes_adicionais.codigo_conta_corrente` | `5368427506` | |
+| `informacoes_adicionais.codigo_categoria` | `"1.01.01"` | antes usava-se `"1.01.03"`; copie do orçamento recente |
+| `informacoes_adicionais.codigo_conta_corrente` | `5617177019` (também aparece `1868394193`) | copie do orçamento recente; em dúvida, pergunte |
 | `informacoes_adicionais.consumidor_final` | `"S"` se não contribuinte ou uso e consumo; `"N"` se revenda | confirme com a pessoa em caso de dúvida |
 | `informacoes_adicionais.enviar_email` | `"N"` | o envio ao cliente é outra etapa |
 | `informacoes_adicionais.codVend` | vendedor do card, se houver correspondente no Omie | `geral/vendedores:ListarVendedores` |
-| `det[].inf_adic.codigo_cenario_impostos_item` | `1868394200` (cenário usado nos orçamentos recentes) | o Omie aplica a tributação do cadastro do produto |
+| `cabecalho.codigo_cenario_impostos` e `det[].inf_adic.codigo_cenario_impostos_item` | `5630354603` ou `5616661330` (os dois aparecem em out/2026) | copie do orçamento recente; em dúvida, pergunte |
 | `det[].produto.codigo_produto` | `codigo_produto_omie` da tabela | sem código → não lança; pendência |
 | `det[].produto.valor_unitario` | unitário **com ICMS** de `calcular_precos` | |
 | `det[].ide.codigo_item_integracao` | `ORC-<deal_id>-<n>` | |
@@ -36,5 +38,5 @@ Itens de **mão de obra/instalação** em equipamento novo: entram como item do 
 ## 3. Depois de incluir
 
 - `produtos/pedido:ConsultarPedido` com `codigo_pedido`: confira itens, total e observação. Use `apenas_resumo` nas listagens: a resposta completa é enorme.
-- Guarde `numero_pedido` (o número que aparece na tela) no registro e na anotação do RD.
+- Guarde `numero_pedido` (o número que aparece na tela): ele vai para o registro, para a anotação, para o campo `N° DO PEDIDO DE VENDA` e para o **título do card** (`rd_adicionar_numero_titulo`, empresa "fixdoor").
 - Para corrigir: `AlterarPedidoVenda` (o Omie não aceita `numero_pedido`/`origem_pedido` na alteração). Nunca inclua de novo para "corrigir".

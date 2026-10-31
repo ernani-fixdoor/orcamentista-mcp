@@ -80,6 +80,24 @@ function registrar(server: any) {
     { deal_id: z.string(), etapa_id: z.string() },
     seguro(async ({ deal_id, etapa_id }: any) => rd.resumirNegocio(await rd.moverNegocio(deal_id, etapa_id))));
 
+  server.tool("rd_renomear_negocio", "Altera o título (nome) do card. Prefira rd_adicionar_numero_titulo para colocar o número do orçamento no padrão da equipe.",
+    { deal_id: z.string(), nome: z.string().min(3) },
+    seguro(async ({ deal_id, nome }: any) => {
+      const antes: any = await rd.lerNegocio(deal_id);
+      const depois: any = await rd.renomearNegocio(deal_id, nome.trim());
+      return { antes: antes?.name, depois: depois?.name ?? nome.trim() };
+    }));
+
+  server.tool("rd_adicionar_numero_titulo", "Acrescenta o número do orçamento ao título do card no padrão da equipe: ' | N° 5695 🟧' (pedido FixDoor), ' | N° 1923 🟦' (OS MaxDock) ou ' | N° 276 🟩' (pedido Fast & Safe). Não repete se o número já estiver no título.",
+    { deal_id: z.string(), empresa: z.enum(["fixdoor", "maxdock", "fast"]), numero: z.string() },
+    seguro(async ({ deal_id, empresa, numero }: any) => {
+      const atual: any = await rd.lerNegocio(deal_id);
+      const novo = rd.tituloComNumero(atual?.name ?? "", empresa, numero);
+      if (novo === String(atual?.name ?? "").replace(/\s+$/, "")) return { alterado: false, titulo: atual?.name, motivo: "o número já está no título" };
+      const depois: any = await rd.renomearNegocio(deal_id, novo);
+      return { alterado: true, antes: atual?.name, depois: depois?.name ?? novo };
+    }));
+
   server.tool("rd_listar_campos", "Lista os campos personalizados de negócio do RD (id, rótulo, tipo, opções).",
     {},
     seguro(async () => {
