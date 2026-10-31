@@ -5,6 +5,7 @@ import * as rd from "../../../lib/rd.ts";
 import * as rdv2 from "../../../lib/rdv2.ts";
 import { consultarCnpj } from "../../../lib/cnpj.ts";
 import { aplicarIcms, buscarItens, calcularPrecos } from "../../../lib/precos.ts";
+import { registrarExtras } from "../../../lib/ferramentas-extra.ts";
 import { definirStatusAprendizado, historicoDoNegocio, listarAprendizados, proporAprendizado, registrarOrcamento } from "../../../lib/aprendizado.ts";
 
 export const dynamic = "force-dynamic";
@@ -209,6 +210,8 @@ function registrar(server: any) {
       status: z.enum(["rascunho", "criado_omie", "em_aprovacao", "aprovado", "reprovado"]).optional(), resumo: z.string().optional(),
     },
     seguro((a: any) => registrarOrcamento(a)));
+
+  registrarExtras(server, seguro as any);
 
   server.tool("orcamento_historico", "Orçamentos já registrados para um card do RD (evita refazer e mostra o que foi feito antes).",
     { rd_deal_id: z.string() },

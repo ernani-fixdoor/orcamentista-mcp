@@ -52,3 +52,9 @@ test("título do card no padrão da equipe", () => {
 test("título: zeros à esquerda contam como o mesmo número", () => {
   assert.equal(tituloComNumero("NUTRIPOLLO | N°0510 🟧", "fixdoor", "510"), "NUTRIPOLLO | N°0510 🟧");
 });
+
+import { ncmLimpo } from "./tipi.ts";
+test("NCM normalizado para 8 dígitos", () => {
+  assert.equal(ncmLimpo("8543.70.99.01"), "85437099");
+  assert.equal(ncmLimpo("8538.90.10"), "85389010");
+});
