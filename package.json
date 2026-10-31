@@ -1,0 +1,27 @@
+{
+  "name": "orcamentista-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Conector MCP do Orçamentista FixDoor/MaxDock: RD Station CRM, CNPJ, preços com ICMS e aprendizados.",
+  "scripts": {
+    "dev": "next dev -p 3300",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test src/lib/*.test.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.26.0",
+    "mcp-handler": "1.1.0",
+    "next": "16.3.4",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "typescript": "^5"
+  }
+}
