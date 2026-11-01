@@ -40,8 +40,10 @@ export interface EntradaDoco {
 async function abrirNavegador() {
   const puppeteer = (await import("puppeteer-core")).default;
   if (process.env.CHROMIUM_PATH) return puppeteer.launch({ executablePath: process.env.CHROMIUM_PATH, headless: true, args: ["--no-sandbox"] });
-  const chromium = (await import("@sparticuz/chromium")).default;
-  return puppeteer.launch({ executablePath: await chromium.executablePath(), args: chromium.args, headless: true });
+  // Vercel: versão "min" baixa o pacote do Chromium na 1ª execução (fica em /tmp enquanto a função estiver quente)
+  const chromium = (await import("@sparticuz/chromium-min")).default;
+  const pacote = process.env.CHROMIUM_PACK_URL ?? "https://github.com/Sparticuz/chromium/releases/download/v153.0.0/chromium-v153.0.0-pack.x64.tar";
+  return puppeteer.launch({ executablePath: await chromium.executablePath(pacote), args: chromium.args, headless: true });
 }
 
 /** Roda a calculadora da DOCO e devolve as opções de mola (cada opção = conjunto de molas). */
