@@ -30,6 +30,7 @@ O princípio é: **você prepara e sugere, a pessoa decide.** Nada é gravado no
 | `references/omie-maxdock.md` | Antes de montar ou criar a OS na MaxDock |
 | `references/textos-padrao.md` | Ao montar as observações do orçamento (FixDoor ou MaxDock) |
 | `references/valor-do-card.md` | Na prévia e depois de criar ou revisar o orçamento: valor do card (produtos do RD por categoria) |
+| `references/molas.md` | Sempre que o pedido tiver **mola**: cálculo pela calculadora DOCO (`calcular_mola`) e preço de R$ 180/kg sem ICMS |
 | `references/ipi.md` | Em todo orçamento FixDoor: conferir o IPI de cada item com a TIPI (`consultar_tipi`), na prévia e depois de criar |
 | `references/icms.md` | Se precisar explicar ou conferir o ICMS (o cálculo é feito pelo conector) |
 
@@ -80,6 +81,8 @@ Regras de mão de obra (campo do card):
   - **MaxDock**: serviço avulso ou vinculado a peças. Vai numa OS da MaxDock.
   - **Empresa terceirizada**: procure a cotação do terceiro nas anotações. Em equipamento novo, o valor entra no orçamento FixDoor como mão de obra.
 - **Você não cota mão de obra.** Se a cotação não estiver no card, diga claramente: "precisa cotar a MaxDock e o terceiro". Peça o valor à pessoa ou deixe pendente, conforme a seção "Pendências".
+
+**Molas:** se o pedido tiver mola, siga `references/molas.md`. O cálculo é feito pela calculadora DOCO (`calcular_mola`) e o preço é peso × R$ 180 sem ICMS, com o ICMS aplicado depois. Não use a tabela de preços para molas. Se faltar o peso da porta, pergunte.
 
 Monte a lista de itens:
 - Use `tabela_buscar_itens` para achar cada item pelo nome ou código e mostre as opções quando houver dúvida (nacional x importado, medidas, kit).

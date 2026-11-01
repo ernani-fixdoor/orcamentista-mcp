@@ -58,3 +58,10 @@ test("NCM normalizado para 8 dígitos", () => {
   assert.equal(ncmLimpo("8543.70.99.01"), "85437099");
   assert.equal(ncmLimpo("8538.90.10"), "85389010");
 });
+
+import { pesoMola } from "./mola.ts";
+test("peso da mola confere com a calculadora DOCO", () => {
+  assert.equal(pesoMola(95.25, 8.5, 1439), 24.58);
+  assert.equal(pesoMola(133, 9, 1295), 32.06);
+  assert.equal(pesoMola(152.4, 9, 1117), 31.43);
+});
