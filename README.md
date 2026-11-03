@@ -59,9 +59,10 @@ npm run dev
 ## Anexos no Omie
 
 O conector Omie oficial do Claude não envia arquivo local, e o `IncluirAnexo` exige o arquivo em ZIP e base64. `omie_anexar_arquivo` resolve isso no servidor:
-baixa a URL, compacta (`src/lib/zip.ts`), calcula o MD5, chama `geral/anexo:IncluirAnexo` e confere em `ListarAnexo`.
+baixa a URL, compacta (`src/lib/zip.ts`), calcula o MD5 do texto base64, chama `geral/anexo:IncluirAnexo` e confere em `ListarAnexo`.
 - `id` é o código interno: `codigo_pedido` do pedido de venda (não o número 5712) ou `nCodOS` da OS.
-- Limite de 8 MB por arquivo. A documentação do Omie não diz se o `cMd5` é do ZIP ou do base64: a ferramenta tenta o do ZIP e, se o Omie reclamar de MD5, repete com o do base64 (o resultado informa qual valeu).
+- Limite de 8 MB por arquivo.
+- `cMd5`: a documentação do Omie não diz de quê, mas o Omie real (testado em 03/11/2026) aceita o MD5 do **texto base64** de `cArquivo` e recusa o do ZIP. A ferramenta envia o do base64 e, só se o Omie reclamar de MD5, repete com o do ZIP (o resultado informa qual valeu em `md5_usado`).
 - Sem as variáveis `OMIE_<EMPRESA>_APP_KEY/SECRET`, a ferramenta falha cedo com mensagem clara.
 
 ## RD Station API v2 (anexos)

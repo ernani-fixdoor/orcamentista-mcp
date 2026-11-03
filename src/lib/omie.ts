@@ -96,18 +96,19 @@ export async function anexarNoOmie(o: {
     cArquivo,
   };
 
-  // A documentação do Omie diz "MD5 do arquivo enviado em cArquivo", sem dizer se é do ZIP ou do base64.
-  // Tenta o MD5 do ZIP; se o Omie reclamar do MD5, repete com o MD5 do texto base64.
-  const md5Zip = createHash("md5").update(zip).digest("hex");
+  // A documentação do Omie diz "MD5 do arquivo enviado em cArquivo", sem dizer de quê. Conferido no Omie real (03/11/2026):
+  // vale o MD5 do TEXTO base64 de cArquivo; o do ZIP é recusado ("MD5 ... é inválido. Esperado o MD5 ..."). Por isso o base64 vai
+  // primeiro. Se um dia o Omie mudar e reclamar do MD5, repete com o MD5 do ZIP.
   const md5B64 = createHash("md5").update(cArquivo).digest("hex");
+  const md5Zip = createHash("md5").update(zip).digest("hex");
   let resposta: any;
-  let md5Usado = "zip";
+  let md5Usado = "base64";
   try {
-    resposta = await chamar(o.empresa, "IncluirAnexo", { ...base, cMd5: md5Zip });
+    resposta = await chamar(o.empresa, "IncluirAnexo", { ...base, cMd5: md5B64 });
   } catch (e) {
     if (!/md5/i.test((e as Error).message)) throw e;
-    md5Usado = "base64";
-    resposta = await chamar(o.empresa, "IncluirAnexo", { ...base, cMd5: md5B64 });
+    md5Usado = "zip";
+    resposta = await chamar(o.empresa, "IncluirAnexo", { ...base, cMd5: md5Zip });
   }
 
   // Conferência: o anexo aparece na lista do documento?
