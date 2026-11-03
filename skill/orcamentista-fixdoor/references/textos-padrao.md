@@ -8,6 +8,9 @@ Como preencher:
   - INSTALAÇÃO caso sim / caso não;
   - Portas x Peças e Partes no prazo de produção e no prazo de pagamento.
 - **Campos em branco** (ex.: "Peças e Partes: __ dias", "PRAZO DE PAGAMENTO:") **têm que ser preenchidos**. Use o padrão das regras aprendidas. Se não houver padrão, pergunte. Nunca envie em branco sem avisar.
+- **Padrões já definidos** (regras confirmadas do Ernani):
+  - prazo de produção de **molas**: `Peças e Partes: 10 dias;`;
+  - prazo de pagamento de peças e partes: **15 dias** para cliente que já comprou na FixDoor e **à vista** para cliente que nunca comprou (`Peças e Partes: à vista;`); na MaxDock, 15 dias. Confira se o cliente já comprou procurando-o no Omie (`geral/clientes:ListarClientes` pelo CNPJ) e nos pedidos dele. Para à vista, veja "Pagamento à vista" em `omie-fixdoor.md`.
 - Pendências entram no próprio texto. Exemplo: "FRETE: CIF - com descarga (valor em cotação)".
 - Não altere o restante do texto. As cláusulas são jurídicas.
 

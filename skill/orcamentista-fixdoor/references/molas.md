@@ -58,6 +58,17 @@ Sempre que houver cálculo de mola, o PDF de cálculo da DOCO (o do botão **Pri
 
 ## No Omie
 
-- Lance cada mola como item, usando o **produto de mola cadastrado no Omie**, com o valor unitário **com ICMS**. Na descrição ou observação do item, informe DI × fio × comprimento e o acabamento.
+- Lance cada mola como item, usando o **produto de mola cadastrado no Omie** (escolhido pelo diâmetro, 95, 133, 152 ou dupla, e pelo lado), com o valor unitário **com ICMS**.
+- **Observação do item** (`det[].observacao.obs_item`): tópicos com hífen, uma linha por tópico, com quebra de linha real (`\n`), nunca `|`, nesta ordem:
+  ```
+  - Diâmetro: 95 mm
+  - Arame: #8 mm
+  - Comprimento: 951 mm
+  - Voltas: 10 1/4
+  - Lado: direito (necessário cliente confirmar lado da mola existente no local)
+  ```
+  - **Voltas:** sempre o número inteiro mais 1/4, 1/2 ou 3/4, **nunca decimais**, arredondando para o quarto mais próximo. Fração .00 a .12 = inteiro; .13 a .37 = 1/4; .38 a .62 = 1/2; .63 a .87 = 3/4; .88 ou mais = próximo inteiro. Exemplos: 10,33 → `10 1/4`; 11,99 → `12`; 8,80 → `8 3/4`; 9,50 → `9 1/2`.
+  - **Lado:** esquerda ou direita conforme o card. Se não houver, pergunte à pessoa (às vezes a foto mostra). Se ela disser que não sabe, use direita e mantenha a frase "necessário cliente confirmar lado da mola existente no local". Se o lado for conhecido, escreva só `- Lado: direito` (ou `esquerdo`).
+- **Cenário fiscal:** molas são produção. Use o cenário **"Produção"** (`5616661330`).
 - Se não souber qual produto do Omie usar para mola, pergunte e registre a resposta como aprendizado (categoria "itens").
 - No valor do card do RD, a mola entra em "Peças e Partes - Porta Seccional" (ou na categoria da porta nova), pelo valor do item.
