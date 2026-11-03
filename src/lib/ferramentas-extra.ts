@@ -19,7 +19,7 @@ No modo 1, cada opção traz pdf_calculo_url: o PDF de cálculo da DOCO (botão 
       largura_mm: z.number().optional().describe("Largura do vão (W)"),
       altura_mm: z.number().optional().describe("Altura do vão (H)"),
       peso_porta_kg: z.number().optional().describe("Peso total da porta (DW)"),
-      peso_painel_inferior_kg: z.number().optional().describe("Peso do painel inferior (BS)"),
+      peso_painel_inferior_kg: z.number().optional().describe("Peso do painel inferior (BS). OPCIONAL: se omitido, vale o BS padrão que a própria calculadora calcula a partir do DW (é o recomendado; o resultado informa o BS usado)"),
       tipo_porta: z.enum(["Standard", "Standard + Pitch", "High-Lift", "High-Lift + Pitch", "Vertical-Lift", "Low-HeadRoom"]).optional(),
       numero_molas: z.number().int().min(1).max(4).optional(),
       ciclos: z.number().int().optional().describe("12500, 15000, 25000, 35000, 50000 ou 100000"),
@@ -32,8 +32,8 @@ No modo 1, cada opção traz pdf_calculo_url: o PDF de cálculo da DOCO (botão 
     },
     seguro(async (a: any) => {
       if (a.molas?.length) return { modo: "molas informadas", ...precificarMolas(a.molas) };
-      for (const k of ["largura_mm", "altura_mm", "peso_porta_kg", "peso_painel_inferior_kg"]) {
-        if (!(a[k] > 0)) throw new Error(`Para usar a calculadora informe largura_mm, altura_mm, peso_porta_kg e peso_painel_inferior_kg (faltou ${k}). Ou informe as molas já especificadas em "molas".`);
+      for (const k of ["largura_mm", "altura_mm", "peso_porta_kg"]) {
+        if (!(a[k] > 0)) throw new Error(`Para usar a calculadora informe largura_mm, altura_mm e peso_porta_kg (faltou ${k}). Ou informe as molas já especificadas em "molas".`);
       }
       return { modo: "calculadora DOCO", ...(await calcularMolaDoco(a)) };
     }));

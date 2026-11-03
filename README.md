@@ -53,7 +53,7 @@ npm run dev
 `rd_consulta_api` (GET livre), `rd_baixar_arquivo`, `consultar_cnpj`, `tabela_buscar_itens`, `calcular_precos`,
 `rd_renomear_negocio`, `rd_adicionar_numero_titulo`, `rd_listar_produtos_catalogo`, `rd_definir_valor_produtos`, `rd_listar_produtos_negocio`, `rd_anexar_arquivo`, `rd_listar_arquivos`, `rd_excluir_arquivo` (com confirmação),
 `rd_editar_anotacao` (experimental, com confirmação), `aplicar_icms`, `aprendizados_listar`, `aprendizado_propor`, `aprendizado_definir_status`, `orcamento_registrar`,
-`orcamento_historico`, `consultar_tipi`, `calcular_mola` (calculadora DOCO via Chromium sem tela + R$ 180/kg; cada opção traz `pdf_calculo_url`, o PDF do botão Print da DOCO). Diagnóstico das molas: `GET /<MCP_CHAVE>/mola`.
+`orcamento_historico`, `consultar_tipi`, `calcular_mola` (calculadora DOCO via Chromium sem tela + R$ 180/kg; BS opcional, com o padrão da calculadora; cada opção traz `pdf_calculo_url`, o PDF do botão Print da DOCO). Diagnóstico das molas: `GET /<MCP_CHAVE>/mola`.
 `omie_anexar_arquivo` (anexa um arquivo, por URL https pública, ao pedido de venda da FixDoor ou à OS da MaxDock).
 
 ## Anexos no Omie
