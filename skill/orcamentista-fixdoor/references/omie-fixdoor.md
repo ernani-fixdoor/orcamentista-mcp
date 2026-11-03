@@ -33,7 +33,7 @@ Valores vistos em 30/10/2026 (referência, não fixos):
 | `informacoes_adicionais.codigo_conta_corrente` | `5617177019` (também aparece `1868394193`) | copie do orçamento recente; em dúvida, pergunte |
 | `informacoes_adicionais.consumidor_final` | `"S"` se não contribuinte ou uso e consumo; `"N"` se revenda | confirme com a pessoa em caso de dúvida |
 | `informacoes_adicionais.enviar_email` | `"N"` | o envio ao cliente é outra etapa |
-| `informacoes_adicionais.codVend` | **sempre preencha** o vendedor do orçamento. Tom = `5412345808` | ver "Vendedor do orçamento" em `resumo-card.md` |
+| `informacoes_adicionais.codVend` | **sempre preencha**, com o vendedor definido pela regra (card manda; senão regional; representante = cadastro próprio), **não necessariamente o Tom**. Código conhecido: Tom = `5412345808` | ver "Vendedor do orçamento" em `resumo-card.md` |
 | `cabecalho.codigo_cenario_impostos` e `det[].inf_adic.codigo_cenario_impostos_item` | molas e peças de produção: **"Produção" = `5616661330`**. Outros: "Revenda de Mercadorias" = `5630354603` (padrão), "Revenda de Mercadorias - IMPORTADAS" = `5629889827` | escolha pelo **nome** do cenário (`geral/cenarios:ListarCenarios`), não copie o código de um pedido recente: os pedidos recentes misturam cenários |
 | `det[].produto.codigo_produto` | `codigo_produto_omie` da tabela | sem código → não lança; pendência |
 | `det[].produto.valor_unitario` | unitário **com ICMS** de `calcular_precos` | |
