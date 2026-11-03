@@ -3,6 +3,7 @@ import { createMcpHandler } from "mcp-handler";
 import { z } from "zod";
 import * as rd from "../../../lib/rd.ts";
 import * as rdv2 from "../../../lib/rdv2.ts";
+import { anexarNoOmie } from "../../../lib/omie.ts";
 import { consultarCnpj } from "../../../lib/cnpj.ts";
 import { aplicarIcms, buscarItens, calcularPrecos } from "../../../lib/precos.ts";
 import { registrarExtras } from "../../../lib/ferramentas-extra.ts";
@@ -161,6 +162,12 @@ function registrar(server: any) {
       await rdv2.excluirArquivo(deal_id, arquivo_id);
       return { excluido: true, arquivo_id };
     }));
+
+  // ---------------- Omie: anexos ----------------
+  server.tool("omie_anexar_arquivo", "Anexa um arquivo ao pedido de venda (FixDoor) ou à ordem de serviço (MaxDock) do Omie, a partir de uma URL https pública (o conector baixa, compacta em ZIP e envia). Uso principal: o PDF de cálculo da mola (botão Print da calculadora DOCO) e outros documentos do orçamento. `id` é o código interno do documento: `codigo_pedido` do pedido de venda (ex.: 5631832130, NÃO o número 5712) ou `nCodOS` da OS. Nunca usar a Fast & Safe. Precisa das variáveis OMIE_<EMPRESA>_APP_KEY e OMIE_<EMPRESA>_APP_SECRET na Vercel.",
+    { empresa: z.enum(["fixdoor", "maxdock"]), id: z.number().int().positive().describe("codigo_pedido (FixDoor) ou nCodOS (MaxDock)"), url: z.string().url(), nome_arquivo: z.string().optional().describe("Nome legível com extensão, ex.: 'Calculo da mola - Pedido 5712 (DOCO).pdf'"), tabela: z.enum(["pedido-venda", "ordem-servico"]).optional().describe("Padrão: pedido-venda na FixDoor, ordem-servico na MaxDock") },
+    seguro(({ empresa, id, url, nome_arquivo, tabela }: any) =>
+      anexarNoOmie({ empresa, id, url, nome_arquivo, tabela: tabela ?? (empresa === "fixdoor" ? "pedido-venda" : "ordem-servico") })));
 
   server.tool("rd_editar_anotacao", "EXPERIMENTAL: altera o texto de uma anotação do card (a API v2 não documenta essa operação; se o RD recusar, avise e crie uma anotação de correção). Só use depois de mostrar o texto atual e o novo à pessoa e ela confirmar; então envie confirmado=true. O RD não permite EXCLUIR anotações pela API.",
     { deal_id: z.string(), anotacao_id: z.string(), texto: z.string().min(1), confirmado: z.boolean() },

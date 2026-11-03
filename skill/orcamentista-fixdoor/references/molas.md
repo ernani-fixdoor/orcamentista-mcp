@@ -20,7 +20,7 @@ Some o valor sem ICMS das molas do conjunto e aplique o ICMS com `aplicar_icms`.
 | W (largura do vão) | `largura_mm` | card, anotações ou anexo | — (obrigatório) |
 | H (altura do vão) | `altura_mm` | card, anotações ou anexo | — (obrigatório) |
 | DW (peso total da porta) | `peso_porta_kg` | anexo ou informado pela pessoa | — (obrigatório: **pergunte se não houver**) |
-| BS (peso do painel inferior) | `peso_painel_inferior_kg` | idem | — (obrigatório: **pergunte se não houver**) |
+| BS (peso do painel inferior) | `peso_painel_inferior_kg` | **omita**: a calculadora calcula o BS padrão sozinha a partir do DW (regra confirmada); o resultado informa o BS usado em `entrada.BS` | padrão da calculadora |
 | Door type | `tipo_porta` | tipo de levantamento | Standard |
 | Nr of Springs | `numero_molas` | pedido ("2 molas", "conjunto") | 2 |
 | Cycles | `ciclos` | pedido do cliente | 25000 |
@@ -28,7 +28,7 @@ Some o valor sem ICMS das molas do conjunto e aplique o ICMS com `aplicar_icms`.
 | Cabledrums | `tambor` | tambor de cabo da porta | o da calculadora |
 | Lift / Pitch | `lift_mm` / `pitch` | só para High-Lift ou com inclinação | — |
 
-- **Nunca invente o peso da porta.** Se o card não trouxer, pergunte o peso total e o do painel inferior, ou como estimar (ex.: kg/m² do painel usado).
+- **Nunca invente o peso da porta.** Se o card não trouxer, use a regra confirmada (altura do vão × largura do vão em m × 11 kg, ou × 13 para painel de 50 mm ou stucco) e diga que o peso foi estimado assim, ou pergunte à pessoa. Só informe o BS se a pessoa passar um valor.
 - A **opção 1** da resposta é a recomendada pela DOCO. Mostre também as alternativas, se houver.
 - Se a resposta trouxer `avisos` (campo não encontrado, valor que não "pegou"), mostre-os e **não use o resultado** sem conferir.
 
@@ -45,6 +45,16 @@ Mostre os dados usados na calculadora e depois as molas:
 | **Total** | | | | | | **62,86** | **R$ 11.314,80** | **…** |
 
 Fonte: calculadora DOCO (doco-international.com/en/support/spring_calculator) + R$ 180/kg.
+
+## PDF de cálculo (anexar no RD e no Omie)
+
+Sempre que houver cálculo de mola, o PDF de cálculo da DOCO (o do botão **Print** da calculadora) vai anexado ao **card do RD** e ao **pedido do Omie**.
+
+- `calcular_mola` (modo calculadora) devolve `pdf_calculo_url` em cada opção. Passe `referencia` (ex.: `A.L. BRAZ - pedido 5712`) para sair escrito no PDF. Use a URL da **opção escolhida**. Em modo Booster ou nas molas informadas à mão, não vem URL: avise e peça o print à pessoa.
+- A URL é pública (GET, sem login) e só renderiza os parâmetros do cálculo, então ela vale mesmo depois de a calculadora fechar.
+- No RD: `rd_anexar_arquivo` com `deal_id`, a URL e `nome_arquivo` = `Calculo da mola - Pedido 5712 (DOCO).pdf`.
+- No Omie: `omie_anexar_arquivo` com `empresa: "fixdoor"`, `id` = `codigo_pedido` (o código interno longo, não o número 5712), a mesma URL e o mesmo `nome_arquivo`.
+- Faça isso depois de criar o pedido (o `id` só existe então). Se o `omie_anexar_arquivo` falhar (ex.: faltam as chaves do Omie no conector), diga o erro e peça que a pessoa anexe o PDF no pedido, passando o link do arquivo que já está no card.
 
 ## No Omie
 

@@ -56,9 +56,12 @@ Não há campo próprio. Procure nas anotações, em `DESCRIÇÃO DO SERVIÇO` e
 
 ## Arquivos do card
 
-A API do RD Station **não entrega os anexos** dos cards. Não existe rota de arquivos, e as anotações vêm só como texto. Por isso:
-- pergunte se o card tem arquivos (fotos, formulário técnico, levantamento);
-- se tiver, peça que a pessoa **arraste os arquivos para a conversa**. Siga a regra de leitura do SKILL.md: o documento sempre; as fotos quando necessário.
+A API v1 do RD (`rd_consulta_api`) não tem anexos, mas a **v2** tem, e o conector já a usa:
+- `rd_listar_arquivos` lista os arquivos do card (nome, id, link temporário);
+- `rd_baixar_arquivo` lê o arquivo pelo link (imagem ou PDF), sem a pessoa arrastar nada;
+- `rd_anexar_arquivo` anexa por URL e `rd_excluir_arquivo` exclui (só com confirmação).
+
+Os campos e as anotações vêm só como texto: fotos, formulário técnico, levantamento e dados cadastrais do cliente costumam estar nos arquivos. Siga a regra de leitura do SKILL.md: o documento sempre; as fotos quando necessário.
 
 ## Título do card
 
