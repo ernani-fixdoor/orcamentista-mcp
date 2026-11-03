@@ -61,7 +61,9 @@ Legenda de status, usada em todas as tabelas:
 - <tarefa> · <data> · <aberta/concluída>   (ou "Nenhuma tarefa.")
 
 ## 📎 Anexos
-<!-- um bloco por arquivo; se não houver arquivos na conversa, escreva: "Nenhum anexo recebido. O card tem arquivos? Se sim, arraste-os aqui." -->
+<!-- um bloco por arquivo do card (rd_listar_arquivos); se a lista vier vazia, escreva: "O card não tem arquivos." -->
+<!-- ignore os arquivos que a própria skill anexou (Proposta..., Calculo da mola...) -->
+<!-- se o documento de dados cadastrais do cliente (CNPJ, IE, e-mails, contato) trouxer algo diferente dos campos do card, leve para "Lacunas e conflitos" -->
 
 ### 📄 1. formulario_tecnico.pdf
 - **O que é:** formulário de informações técnicas, preenchido pelo cliente

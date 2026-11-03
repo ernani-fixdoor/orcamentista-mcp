@@ -12,6 +12,8 @@ O princípio é: **você prepara e sugere, a pessoa decide.** Nada é gravado no
 ## Ferramentas
 
 - **Conector Orçamentista** (MCP próprio): `rd_*` (RD Station), `consultar_cnpj`, `tabela_buscar_itens`, `calcular_precos`, `aplicar_icms`, `aprendizados_listar`, `aprendizado_propor`, `orcamento_registrar`, `orcamento_historico`.
+  - Arquivos do card: `rd_listar_arquivos` (lista), `rd_baixar_arquivo` (lê), `rd_anexar_arquivo` (anexa por URL) e `rd_excluir_arquivo` (só com confirmação).
+  - Anexo no Omie: `omie_anexar_arquivo` (pedido de venda da FixDoor ou OS da MaxDock, por URL https). O conector Omie oficial não envia arquivo local.
 - **Conector Omie** (oficial): `omie_executar` com `app_hash`:
   - FixDoor: `fixdoor-918f968`
   - MaxDock: `maxdock-3uvozddw`
@@ -51,7 +53,7 @@ Leia **tudo** antes de propor qualquer coisa:
 - `rd_ler_negocio`: campos do card. CNPJ, ESTADO, contribuinte e IE estão em `empresa.campos`; o resto está em `campos_personalizados`. Veja `references/campos-rd.md`.
 - `rd_listar_anotacoes`: o histórico completo. Cotações de terceiros e de frete costumam estar aqui.
 - `rd_listar_tarefas`: o que já foi pedido ou feito.
-- **Arquivos**: a API do RD não entrega anexos. Pergunte se o card tem arquivos e peça que a pessoa os arraste para a conversa. Veja a seção "Arquivos do card".
+- **Arquivos**: rode `rd_listar_arquivos` e leia o que o card tem com `rd_baixar_arquivo`, sem pedir que a pessoa arraste nada. Veja a seção "Arquivos do card".
 
 Monte o **resumo visual do card** seguindo **exatamente** `references/resumo-card.md`. As seções separam o que veio de cada lugar: campos do card, o que vai ser orçado, anotações, tarefas, **um bloco por anexo** e uma lista única de lacunas. No mesmo resumo, defina o **vendedor** e o **representante**: o card manda; sem indicação no card, vale a regra regional (Sul → Renata; Sudeste, Norte e Centro-Oeste → Tom; Nordeste → Ana).
 
@@ -147,6 +149,7 @@ Se faltar cotação de frete, de mão de obra (MaxDock ou terceiro) ou de locaç
    - MaxDock: `servicos/osdocs:ObterOS`. Antes, rode `omie_descrever_operacao` para ver os campos.
    - Depois chame `rd_anexar_arquivo` com o link e `nome_arquivo` legível, por exemplo `Proposta 5701 - FixDoor.pdf` ou `OS 1923 - MaxDock.pdf`.
    - Se anexar falhar, porque o RD v2 não está autorizado ou o link expirou, gere o link de novo, tente mais uma vez e avise se não der. A falha no anexo não impede mover o card.
+   - **Se houve cálculo de mola**, anexe também o PDF de cálculo da DOCO (`pdf_calculo_url` da opção escolhida em `calcular_mola`), conforme `references/molas.md`: no card com `rd_anexar_arquivo` (`Calculo da mola - Pedido 5712 (DOCO).pdf`) e no pedido do Omie com `omie_anexar_arquivo`.
 6. Mova o card para a etapa **APROVAÇÃO** (id `69408c3c404dbe001655f7dd`) com `rd_mover_negocio`. Mova **sempre**, mesmo que o Ernani seja quem está pedindo.
 7. `orcamento_registrar` com `status: "em_aprovacao"`.
 8. Feche com um resumo curto para a pessoa: o que foi criado, o que ficou pendente e os links ou números.
@@ -156,7 +159,7 @@ Se faltar cotação de frete, de mão de obra (MaxDock ou terceiro) ou de locaç
 - O orçamento existe no Omie com o ICMS correto, os itens ou serviços corretos e o texto padrão da empresa certa.
 - Mão de obra, frete e locação (PTA/MUNC) estão cobertos a partir do card ou sinalizados para cotação.
 - Cada cotação faltante tem uma tarefa no RD informando que está em andamento.
-- O valor do card é a soma dos produtos por categoria (sem IPI, ICMS-ST, frete e locação). O título tem o(s) número(s) do Omie com o emoji da empresa. O PDF da proposta está anexado. O card está na etapa de aprovação do RD.
+- O valor do card é a soma dos produtos por categoria (sem IPI, ICMS-ST, frete e locação). O título tem o(s) número(s) do Omie com o emoji da empresa. O PDF da proposta está anexado (e, quando houve mola, o PDF de cálculo, no card e no pedido do Omie). O card está na etapa de aprovação do RD.
 - O orçamento está registrado no histórico do Orçamentista.
 
 Se algum item não foi cumprido, diga qual e por quê. Não declare como concluído.
@@ -168,7 +171,12 @@ Os cards trazem imagens e, normalmente, um documento que ajuda no orçamento (fo
 2. **Sempre leia o documento principal** (PDF, planilha ou formulário), porque é ele que define o escopo.
 3. **Abra as fotos só quando** o escopo estiver ambíguo, for equipamento novo ou levantamento técnico, ou a pessoa pedir. Abra no máximo 4 por vez e diga o que viu em cada uma.
 
-A API do RD **não entrega os anexos**. Os arquivos chegam quando a pessoa os arrasta para a conversa. Se ela mandar um link público de arquivo, use `rd_baixar_arquivo`.
+Como ler os arquivos do card:
+- `rd_listar_arquivos` com o `deal_id` devolve nome, id e link de cada arquivo. Os links expiram em poucos minutos: baixe logo.
+- `rd_baixar_arquivo` com o link devolve imagens para você olhar e PDFs como recurso (se o PDF vier salvo em arquivo, extraia o texto com `pdftotext`). Ele serve para o documento principal e para as fotos.
+- Se a lista vier vazia, o card não tem arquivos. Só peça que a pessoa arraste arquivos para a conversa se ela disser que existem arquivos que não aparecem no card (por exemplo, um documento recebido por fora do RD).
+- Registre cada arquivo no resumo do card como um bloco em "Anexos" (`references/resumo-card.md`), inclusive os que não mudam o orçamento (como o PDF de dados cadastrais ou a foto da porta).
+- Ao anexar a proposta, o PDF de cálculo de mola ou qualquer arquivo seu, use nomes claros, para quem abre o card entender o que é cada um.
 
 ## Aprender
 

@@ -13,7 +13,8 @@ export function registrarExtras(server: any, seguro: Seguro) {
   server.tool("calcular_mola", `Molas de torção (porta seccional). Dois modos:
 (1) Pelos dados da porta: roda a calculadora oficial da DOCO e devolve as opções de mola (diâmetro interno, fio, comprimento, voltas, peso, ciclos) — a opção 1 é a recomendada.
 (2) Pelas molas já especificadas (diâmetro interno, fio, comprimento): calcula o peso pela fórmula do aço (confere com a DOCO).
-Em ambos, o preço é R$ ${PRECO_KG_MOLA}/kg = valor SEM ICMS por mola; aplique o ICMS depois com aplicar_icms. Leva ~10–20 s no modo 1.`,
+Em ambos, o preço é R$ ${PRECO_KG_MOLA}/kg = valor SEM ICMS por mola; aplique o ICMS depois com aplicar_icms. Leva ~10–20 s no modo 1.
+No modo 1, cada opção traz pdf_calculo_url: o PDF de cálculo da DOCO (botão Print), pronto para anexar ao card (rd_anexar_arquivo) e ao pedido (omie_anexar_arquivo). Informe "referencia" (ex.: 'CLIENTE - pedido 5712') para sair escrito no PDF. Não vem em modo Booster.`,
     {
       largura_mm: z.number().optional().describe("Largura do vão (W)"),
       altura_mm: z.number().optional().describe("Altura do vão (H)"),
@@ -25,6 +26,7 @@ Em ambos, o preço é R$ ${PRECO_KG_MOLA}/kg = valor SEM ICMS por mola; aplique 
       acabamento: z.enum(["Normal", "Galvanized", "Shot Blasted"]).optional(),
       tambor: z.string().optional().describe("Tambor de cabo (início do código, ex.: '110140')"),
       lift_mm: z.number().optional(), pitch: z.number().optional(),
+      referencia: z.string().optional().describe("Texto do campo Reference no PDF de cálculo, ex.: 'A.L. BRAZ - pedido 5712'"),
       molas: z.array(z.object({ diametro_interno_mm: z.number(), fio_mm: z.number(), comprimento_mm: z.number(), quantidade: z.number().int().min(1) })).optional()
         .describe("Modo 2: molas já especificadas"),
     },

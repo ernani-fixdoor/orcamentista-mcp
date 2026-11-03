@@ -35,6 +35,51 @@ export interface EntradaDoco {
   largura_mm: number; altura_mm: number; peso_porta_kg: number; peso_painel_inferior_kg: number;
   tipo_porta?: string; numero_molas?: number; ciclos?: number; acabamento?: string; calculo?: string; tambor?: string;
   lift_mm?: number; pitch?: number;
+  /** Texto do campo "Reference" no PDF (ex.: "A.L. BRAZ - pedido 5712"). */
+  referencia?: string;
+}
+
+// ---- PDF de cálculo da DOCO (botão "Print" da calculadora) ----
+// O botão baixa https://doco-international.com/verenwebapp/springpdf.pdf?<parâmetros>: uma URL pública (GET, sem login)
+// que só renderiza os parâmetros, sem recalcular. Por isso montamos a URL com o resultado que a própria calculadora devolveu.
+const URL_PDF_DOCO = "https://doco-international.com/verenwebapp/springpdf.pdf";
+const VERSAO_DOCO = "Spring Calculator v2.1.3";
+/** kindOfDoor = posição do tipo de porta no menu da calculadora (conferido em 03/11/2026). */
+const CODIGO_TIPO_PORTA: Record<string, number> = {
+  "Standard": 0, "Standard + Pitch": 1, "High-Lift": 2, "High-Lift + Pitch": 3, "Vertical-Lift": 4, "Low-HeadRoom": 5,
+};
+
+export interface MolaCalculada {
+  diametro_interno_mm: number; fio_mm: number; comprimento_mm: number; kcm_por_volta: number; voltas: number; ciclos_mil: number; peso_kg: number;
+}
+
+/**
+ * URL do PDF de cálculo (o mesmo do botão Print) para uma opção de mola. Devolve null quando não dá para montar com segurança
+ * (modo Booster, ou tipo de porta desconhecido). `tamborCompleto` é o texto do tambor escolhido (ex.: "110090 0.5SW M-216-3350").
+ */
+export function urlPdfCalculo(e: EntradaDoco, molas: MolaCalculada[], tamborCompleto: string): string | null {
+  const tipo = e.tipo_porta ?? "Standard";
+  const codigo = CODIGO_TIPO_PORTA[tipo];
+  if (codigo === undefined || !molas.length || (e.calculo ?? "Optimal") === "Booster") return null;
+  const n = e.numero_molas ?? 2;
+  const um = (x: number) => String(Math.round(x * 10) / 10);
+  const comPitch = tipo.includes("Pitch");
+  const comLift = tipo.includes("High");
+  const q: [string, string | number][] = [
+    ["kindOfDoor", codigo], ["OH", e.altura_mm], ["OW", e.largura_mm],
+    ["Lift", tipo === "Vertical-Lift" ? e.altura_mm : comLift ? e.lift_mm ?? 0 : 0],
+    ["Pitch", tipo === "Vertical-Lift" ? 90 : comPitch ? e.pitch ?? 0 : 0],
+    ["DW", e.peso_porta_kg], ["BS", e.peso_painel_inferior_kg],
+    ["Calculation", e.calculo ?? "Optimal"], ["Cabledrums", tamborCompleto], ["Cycles", e.ciclos ?? 25000],
+    ["Spring_Choice", e.acabamento ?? "Normal"], ["Number", n], ["NumberLeft", Math.ceil(n / 2)], ["NumberRight", Math.floor(n / 2)],
+    ["Reference", e.referencia ?? ""], ["Version", VERSAO_DOCO],
+  ];
+  for (let i = 1; i <= n; i++) {
+    const m = molas[i - 1] ?? molas[0]; // a calculadora lista uma linha por opção quando as molas são iguais
+    q.push([`Dl${i}`, um(m.diametro_interno_mm)], [`ID${i}`, m.fio_mm], [`Length${i}`, m.comprimento_mm], [`Kcm_U${i}`, m.kcm_por_volta],
+      [`Sp_U${i}`, m.voltas], [`Weight${i}`, m.peso_kg], [`LE${i}`, m.ciclos_mil]);
+  }
+  return `${URL_PDF_DOCO}?${q.map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`).join("&")}`;
 }
 
 async function abrirNavegador() {
@@ -131,6 +176,11 @@ export async function calcularMolaDoco(e: EntradaDoco, precoKg = PRECO_KG_MOLA) 
         valor_sem_icms: arred(pesoKg * precoKg) });
     }
     if (atual.length) opcoes.push(atual);
+    // tambor realmente escolhido pela calculadora (o padrão, se não foi informado), para o PDF de cálculo
+    const tamborCompleto: string = await p.evaluate(() => {
+      const s = [...document.querySelectorAll("select")].find((x) => [...x.options].some((o) => /^\d{6} \d\.\dSW/.test(o.text)));
+      return s?.selectedOptions[0]?.text ?? "";
+    });
     return {
       entrada: campos,
       avisos,
@@ -141,6 +191,8 @@ export async function calcularMolaDoco(e: EntradaDoco, precoKg = PRECO_KG_MOLA) 
         molas,
         peso_total_kg: arred(molas.reduce((s: number, m: any) => s + m.peso_kg, 0)),
         total_sem_icms: arred(molas.reduce((s: number, m: any) => s + m.valor_sem_icms, 0)),
+        // PDF de cálculo (botão Print da DOCO) desta opção: anexe ao card do RD (rd_anexar_arquivo) e ao pedido (omie_anexar_arquivo)
+        pdf_calculo_url: tamborCompleto ? urlPdfCalculo(e, molas, tamborCompleto) : null,
       })),
       fonte: "Calculadora DOCO (doco-international.com/en/support/spring_calculator)",
     };

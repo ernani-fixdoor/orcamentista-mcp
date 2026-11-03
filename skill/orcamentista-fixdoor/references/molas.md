@@ -46,6 +46,16 @@ Mostre os dados usados na calculadora e depois as molas:
 
 Fonte: calculadora DOCO (doco-international.com/en/support/spring_calculator) + R$ 180/kg.
 
+## PDF de cálculo (anexar no RD e no Omie)
+
+Sempre que houver cálculo de mola, o PDF de cálculo da DOCO (o do botão **Print** da calculadora) vai anexado ao **card do RD** e ao **pedido do Omie**.
+
+- `calcular_mola` (modo calculadora) devolve `pdf_calculo_url` em cada opção. Passe `referencia` (ex.: `A.L. BRAZ - pedido 5712`) para sair escrito no PDF. Use a URL da **opção escolhida**. Em modo Booster ou nas molas informadas à mão, não vem URL: avise e peça o print à pessoa.
+- A URL é pública (GET, sem login) e só renderiza os parâmetros do cálculo, então ela vale mesmo depois de a calculadora fechar.
+- No RD: `rd_anexar_arquivo` com `deal_id`, a URL e `nome_arquivo` = `Calculo da mola - Pedido 5712 (DOCO).pdf`.
+- No Omie: `omie_anexar_arquivo` com `empresa: "fixdoor"`, `id` = `codigo_pedido` (o código interno longo, não o número 5712), a mesma URL e o mesmo `nome_arquivo`.
+- Faça isso depois de criar o pedido (o `id` só existe então). Se o `omie_anexar_arquivo` falhar (ex.: faltam as chaves do Omie no conector), diga o erro e peça que a pessoa anexe o PDF no pedido, passando o link do arquivo que já está no card.
+
 ## No Omie
 
 - Lance cada mola como item, usando o **produto de mola cadastrado no Omie**, com o valor unitário **com ICMS**. Na descrição ou observação do item, informe DI × fio × comprimento e o acabamento.
