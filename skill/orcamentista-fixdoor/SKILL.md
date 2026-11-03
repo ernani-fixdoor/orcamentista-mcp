@@ -119,7 +119,7 @@ Apresente a **composição sugerida** (itens, quantidades, unitário com ICMS, t
    - pendências.
 2. Os campos em branco do texto padrão (prazo de peças, prazo de pagamento) **precisam ser preenchidos**. O prazo de pagamento vem do campo `PRAZO DE PAGAMENTO` do card; os demais, das regras aprendidas. Se não houver, pergunte. Não deixe em branco sem avisar.
 3. **IPI:** na prévia de orçamento FixDoor, inclua a tabela de conferência do IPI com a TIPI, conforme `references/ipi.md`. Use **uma** chamada `consultar_tipi` com todos os NCMs.
-4. Com o **ok explícito**, crie no Omie, seguindo `references/omie-fixdoor.md` e `references/omie-maxdock.md`. Se o cliente não existir no Omie, mostre os dados da Receita e **pergunte antes de cadastrar**.
+4. Com o **ok explícito**, crie no Omie, seguindo `references/omie-fixdoor.md` e `references/omie-maxdock.md`. Se o cliente não existir no Omie, cadastre-o (autorizado pelo Ernani) conforme `references/omie-fixdoor.md`, com a tag "Cliente" e os dados do card do RD com prioridade; cliente novo paga à vista.
 5. Confira o resultado: consulte o orçamento criado e compare total e itens com a prévia. Compare também o IPI calculado pelo Omie com a TIPI e aponte as divergências (⚠️).
 6. `orcamento_registrar` com `status: "criado_omie"`, os números do Omie, itens e pendências.
 
