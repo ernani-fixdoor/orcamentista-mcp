@@ -6,6 +6,7 @@ import * as rdv2 from "../../../lib/rdv2.ts";
 import { anexarNoOmie } from "../../../lib/omie.ts";
 import { consultarCnpj } from "../../../lib/cnpj.ts";
 import { aplicarIcms, buscarItens, calcularPrecos } from "../../../lib/precos.ts";
+import { listarTopicos, lerInstrucao } from "../../../lib/instrucoes.ts";
 import { registrarExtras } from "../../../lib/ferramentas-extra.ts";
 import { definirStatusAprendizado, historicoDoNegocio, listarAprendizados, proporAprendizado, registrarOrcamento } from "../../../lib/aprendizado.ts";
 
@@ -24,6 +25,11 @@ const cenario = {
 };
 
 function registrar(server: any) {
+  // ---------------- Instruções da skill (texto servido pelo conector: editar no repositório vale para todos) ----------------
+  server.tool("skill_instrucoes", "Devolve as instruções oficiais do Orçamentista (processo e referências). Chame SEM argumento no início de todo orçamento para receber o processo completo; depois chame com `topico` (ex.: 'omie-fixdoor', 'textos-padrao', 'molas') quando o processo mandar ler uma referência. `topico: 'indice'` lista os tópicos.",
+    { topico: z.string().optional() },
+    seguro(({ topico }: any) => lerInstrucao(topico)));
+
   // ---------------- RD Station CRM ----------------
   server.tool("rd_buscar_negocios", "Procura negócios (cards) no RD Station CRM pelo nome (normalmente o nome do cliente) ou pela etapa.",
     { nome: z.string().optional(), etapa_id: z.string().optional(), pagina: z.number().int().optional(), limite: z.number().int().optional() },
