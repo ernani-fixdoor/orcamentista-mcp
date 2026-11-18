@@ -215,6 +215,10 @@ export async function definirProdutosNegocio(dealId: string, itens: { produto: s
 export const renomearNegocio = (dealId: string, nome: string) =>
   rd("PUT", `deals/${encodeURIComponent(dealId)}`, { corpo: { deal: { name: nome } } });
 
+/** Troca o responsável (dono) do card. `userId` vem de GET users (rd_consulta_api caminho "users"). */
+export const alterarResponsavel = (dealId: string, userId: string) =>
+  rd("PUT", `deals/${encodeURIComponent(dealId)}`, { corpo: { deal: { user_id: userId } } });
+
 /** Emoji de cada empresa no título do card: pedido FixDoor 🟧, OS MaxDock 🟦, pedido Fast & Safe 🟩. */
 export const EMOJI_EMPRESA = { fixdoor: "🟧", maxdock: "🟦", fast: "🟩" } as const;
 export type EmpresaTitulo = keyof typeof EMOJI_EMPRESA;
