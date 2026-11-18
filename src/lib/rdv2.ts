@@ -87,6 +87,24 @@ async function v2<T = any>(metodo: string, caminho: string, corpo?: BodyInit, js
   return (texto ? JSON.parse(texto) : null) as T;
 }
 
+/** Diagnóstico read-only da v2: mostra onde está o 404 (card, arquivos ou conta do token). */
+export async function diagnostico(dealId: string) {
+  const tent = async (rotulo: string, caminho: string) => {
+    try { const r: any = await v2("GET", caminho); return { rotulo, ok: true, resumo: JSON.stringify(r).slice(0, 300) }; }
+    catch (e) { return { rotulo, ok: false, erro: (e as Error).message.slice(0, 300) }; }
+  };
+  const id = encodeURIComponent(dealId);
+  return {
+    autorizacao: await statusAutorizacao(),
+    testes: [
+      await tent("lista de negócios (1)", "deals?page%5Blimit%5D=1"),
+      await tent("negócio por id", `deals/${id}`),
+      await tent("arquivos do negócio", `deals/${id}/files`),
+      await tent("anotações do negócio", `deals/${id}/notes`),
+    ],
+  };
+}
+
 export const listarArquivos = (dealId: string) => v2("GET", `deals/${encodeURIComponent(dealId)}/files`);
 
 /** Baixa o arquivo de uma URL https (ex.: PDF da proposta gerado pelo Omie) e anexa ao card. */

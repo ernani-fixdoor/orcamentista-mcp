@@ -91,6 +91,14 @@ function registrar(server: any) {
       return { antes: antes?.name, depois: depois?.name ?? nome.trim() };
     }));
 
+  server.tool("rd_alterar_responsavel", "Troca o responsável (dono) do card no RD. Regra regional: Sul (PR, SC, RS) = Renata (689653b559aead001fe6afd9); Nordeste = Ana Julia Goudel (6997091a3b0ff9001dee2981); Sudeste, Centro-Oeste e Norte = Yasmin Pinheiro (6893ae1fb5e2a3001b344012). Os ids vêm de rd_consulta_api com caminho 'users'.",
+    { deal_id: z.string(), user_id: z.string() },
+    seguro(async ({ deal_id, user_id }: any) => {
+      const antes: any = await rd.lerNegocio(deal_id);
+      const depois: any = await rd.alterarResponsavel(deal_id, user_id);
+      return { antes: antes?.user?.name, depois: depois?.user?.name ?? "(confira no card)", user_id };
+    }));
+
   server.tool("rd_adicionar_numero_titulo", "Acrescenta o número do orçamento ao título do card no padrão da equipe: ' | N° 5695 🟧' (pedido FixDoor), ' | N° 1923 🟦' (OS MaxDock) ou ' | N° 276 🟩' (pedido Fast & Safe). Não repete se o número já estiver no título.",
     { deal_id: z.string(), empresa: z.enum(["fixdoor", "maxdock", "fast"]), numero: z.string() },
     seguro(async ({ deal_id, empresa, numero }: any) => {
@@ -154,6 +162,10 @@ function registrar(server: any) {
   server.tool("rd_listar_arquivos", "Lista os arquivos anexados ao card (nome, id, link).",
     { deal_id: z.string() },
     seguro(({ deal_id }: any) => rdv2.listarArquivos(deal_id)));
+
+  server.tool("rd_v2_diagnostico", "Diagnóstico somente leitura da API v2 do RD (OAuth): testa lista de negócios, negócio, arquivos e anotações de um card e mostra qual chamada dá erro. Use quando rd_listar_arquivos ou rd_anexar_arquivo falharem.",
+    { deal_id: z.string() },
+    seguro(({ deal_id }: any) => rdv2.diagnostico(deal_id)));
 
   server.tool("rd_excluir_arquivo", "EXCLUI permanentemente um arquivo do card. Só use depois de mostrar o nome do arquivo à pessoa e ela confirmar explicitamente; então envie confirmado=true.",
     { deal_id: z.string(), arquivo_id: z.string(), confirmado: z.boolean() },
