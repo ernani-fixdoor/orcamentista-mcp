@@ -6,6 +6,7 @@ import * as rdv2 from "../../../lib/rdv2.ts";
 import { anexarNoOmie } from "../../../lib/omie.ts";
 import { consultarCnpj } from "../../../lib/cnpj.ts";
 import { aplicarIcms, buscarItens, calcularPrecos } from "../../../lib/precos.ts";
+import { autenticar } from "../../../lib/acesso.ts";
 import { listarTopicos, lerInstrucao } from "../../../lib/instrucoes.ts";
 import { registrarExtras } from "../../../lib/ferramentas-extra.ts";
 import { definirStatusAprendizado, historicoDoNegocio, listarAprendizados, proporAprendizado, registrarOrcamento } from "../../../lib/aprendizado.ts";
@@ -243,22 +244,20 @@ function registrar(server: any) {
     seguro(({ rd_deal_id }: any) => historicoDoNegocio(rd_deal_id)));
 }
 
-let cache: { base: string; h: (r: Request) => Promise<Response> } | null = null;
+const handlers = new Map<string, (r: Request) => Promise<Response>>();
+
 function handler(chave: string) {
-  const base = `/${chave}`;
-  if (!cache || cache.base !== base) {
-    cache = {
-      base,
-      h: createMcpHandler(registrar, { serverInfo: { name: "orcamentista-fixdoor", version: "0.1.0" } }, { basePath: base, maxDuration: 60, disableSse: true }),
-    };
+  let h = handlers.get(chave);
+  if (!h) {
+    h = createMcpHandler(registrar, { serverInfo: { name: "orcamentista-fixdoor", version: "0.1.0" } }, { basePath: `/${chave}`, maxDuration: 60, disableSse: true });
+    handlers.set(chave, h);
   }
-  return cache.h;
+  return h;
 }
 
 async function rota(req: Request, ctx: { params: Promise<{ chave: string; transport: string }> }) {
   const { chave } = await ctx.params;
-  const esperada = process.env.MCP_CHAVE;
-  if (!esperada || esperada.length < 16 || chave !== esperada) return new Response("Not found", { status: 404 });
+  if (!(await autenticar(chave))) return new Response("Not found", { status: 404 });
   return handler(chave)(req);
 }
 
