@@ -29,6 +29,13 @@ export async function cmvFinal(): Promise<number> {
   return v;
 }
 
+/** Acréscimo sobre o preço líquido dos itens importados (precos_parametros.chave = "acrescimo_importados"; 0,2 = +20%). Editável na Gestão da Tabela de Preços. */
+export async function acrescimoImportados(): Promise<number> {
+  const v = Number(await rpc("orc_acrescimo_importados"));
+  if (!(v >= 0)) throw new Error("Acréscimo de importados não encontrado em precos_parametros (chave 'acrescimo_importados').");
+  return v;
+}
+
 /** Alertas que a skill deve mostrar e confirmar com a pessoa antes de usar o item. */
 export function alertasDoItem(p: ItemTabela): string[] {
   const a: string[] = [];
@@ -44,23 +51,29 @@ export async function buscarItens(o: { texto?: string; codigo?: string; ids?: nu
     p_texto: o.texto || null, p_codigo: o.codigo || null, p_grupo: o.grupo || null,
     p_ids: o.ids?.length ? o.ids.map(Number) : null, p_limite: o.limite ?? 20,
   });
-  const cmv = await cmvFinal();
+  const [cmv, acrescimo] = await Promise.all([cmvFinal(), acrescimoImportados()]);
   return {
     cmv_cliente_final: cmv,
-    itens: rows.map(normalizar).map((p) => ({
-      ...p,
-      origem_descricao: p.origem != null ? ORIGENS[p.origem] ?? p.origem : null,
-      importado: p.origem == null ? null : origemImportada(p.origem),
-      preco_liquido_sem_icms: precoLiquido(p.custo, p.peso, cmv),
-      alertas: alertasDoItem(p),
-    })),
+    acrescimo_importados: acrescimo,
+    itens: rows.map(normalizar).map((p) => {
+      const importado = p.origem == null ? null : origemImportada(p.origem);
+      return {
+        ...p,
+        origem_descricao: p.origem != null ? ORIGENS[p.origem] ?? p.origem : null,
+        importado,
+        // importados já saem com o acréscimo; sem origem, o preço é o de nacional (veja o alerta)
+        preco_liquido_sem_icms: precoLiquido(p.custo, p.peso, cmv, importado ? acrescimo : 0),
+        acrescimo_aplicado: importado ? acrescimo : 0,
+        alertas: alertasDoItem(p),
+      };
+    }),
   };
 }
 
 export interface PedidoItem { id?: number; codigo?: string; quantidade: number; importado?: boolean }
 
 export async function calcularPrecos(cenario: Cenario, itens: PedidoItem[]) {
-  const cmv = await cmvFinal();
+  const [cmv, acrescimo] = await Promise.all([cmvFinal(), acrescimoImportados()]);
   const ids = itens.filter((i) => i.id != null).map((i) => Number(i.id));
   const porId = new Map<number, ItemTabela>();
   if (ids.length) {
@@ -81,24 +94,25 @@ export async function calcularPrecos(cenario: Cenario, itens: PedidoItem[]) {
     if (!p) { linhas.push({ pedido: i, erro: "Item não encontrado na tabela de preços." }); continue; }
     const importado = i.importado ?? (p.origem == null ? false : origemImportada(p.origem));
     const calc = calcular(cenario, importado);
-    const liquido = precoLiquido(p.custo, p.peso, cmv);
+    const acrescimoItem = importado ? acrescimo : 0;
+    const liquido = precoLiquido(p.custo, p.peso, cmv, acrescimoItem);
     const unit = comIcms(liquido, calc.aliqFixDoor);
     const alertas = alertasDoItem(p);
     if (i.importado == null && p.origem == null) {
-      const alt = comIcms(liquido, calcular(cenario, true).aliqFixDoor);
+      const alt = comIcms(precoLiquido(p.custo, p.peso, cmv, acrescimo), calcular(cenario, true).aliqFixDoor);
       alertas.push(`Calculado como NACIONAL. Se for importado, o unitário seria ${alt}.`);
     }
     linhas.push({
       id: p.id, codigo: p.codigo, codigo_produto_omie: p.codigo_produto_omie, descricao: p.descricao, unidade: p.unidade,
       quantidade: i.quantidade, origem: p.origem, importado,
-      preco_liquido_sem_icms: liquido, aliquota_icms_embutida: calc.aliqFixDoor, aliquota_icms_nf: calc.aliqNF,
+      preco_liquido_sem_icms: liquido, acrescimo_aplicado: acrescimoItem, aliquota_icms_embutida: calc.aliqFixDoor, aliquota_icms_nf: calc.aliqNF,
       difal: calc.difal, difal_por: calc.difalPor,
       valor_unitario: unit, valor_total: unit == null ? null : Math.round(unit * i.quantidade * 100) / 100,
       alertas,
     });
   }
   const total = linhas.reduce((s, l: any) => s + (l.valor_total ?? 0), 0);
-  return { cenario: { ...cenario, ...descreverCenario(cenario) }, cmv_cliente_final: cmv, itens: linhas, total: Math.round(total * 100) / 100 };
+  return { cenario: { ...cenario, ...descreverCenario(cenario) }, cmv_cliente_final: cmv, acrescimo_importados: acrescimo, itens: linhas, total: Math.round(total * 100) / 100 };
 }
 
 /** Para itens precificados à mão (portas, mão de obra FixDoor...): aplica o ICMS do cenário a um valor líquido. */

@@ -7,6 +7,12 @@ test("preço líquido = custo × peso ÷ CMV (confere com preco_referencia da ta
   assert.equal(precoLiquido(105.11, 0.6, 0.35), 180.19);
 });
 
+test("acréscimo de importados (+20%) entra antes do arredondamento; sem acréscimo nada muda", () => {
+  assert.equal(precoLiquido(1.8, 4, 0.35, 0.2), 24.69);
+  assert.equal(precoLiquido(1.8, 4, 0.35, 0), 20.57);
+  assert.equal(comIcms(precoLiquido(1.8, 4, 0.35, 0.2), 4), 25.72);
+});
+
 test("dentro do PR: alíquota interna cheia, inclusive importado", () => {
   assert.equal(calcular({ uf: "PR", contribuinte: true, destinacao: "uso" }, false).aliqFixDoor, 19.5);
   assert.equal(calcular({ uf: "PR", contribuinte: true, destinacao: "uso" }, true).aliqFixDoor, 19.5);
