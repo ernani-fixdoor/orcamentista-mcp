@@ -4,9 +4,9 @@
 //   preenchemos os campos e lemos as opções que ela devolve.
 // - Peso da mola (aço, 7,85 g/cm³): massa = densidade × (π·d²/4) × π·(DI + d) × (comprimento / d).
 //   Confere com a DOCO (ex.: DI 95,25 · fio 8,5 · 1439 mm = 24,58 kg).
-// - Preço FixDoor: R$ 180 por kg = valor SEM ICMS; o ICMS é aplicado depois (aplicar_icms).
+// - Preço FixDoor: R$ 135 por kg = valor SEM ICMS; o ICMS é aplicado depois (aplicar_icms).
 
-export const PRECO_KG_MOLA = 180;
+export const PRECO_KG_MOLA = 135;
 const DENSIDADE_ACO = 7.85e-6; // kg/mm³
 const URL_DOCO = "https://doco-international.com/verenwebapp/VerenWebApp.html";
 

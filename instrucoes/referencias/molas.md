@@ -5,7 +5,7 @@ Sempre que o pedido envolver **mola** (troca, conjunto de molas, mola quebrada, 
 ## Regra de preço
 
 ```
-valor por mola SEM ICMS = peso da mola (kg) × R$ 180
+valor por mola SEM ICMS = peso da mola (kg) × R$ 135
 valor por mola COM ICMS = aplicar_icms(valor sem ICMS, cenário do cliente)
 ```
 
@@ -40,11 +40,11 @@ Mostre os dados usados na calculadora e depois as molas:
 
 | Mola | DI (mm) | Fio (mm) | Comprimento (mm) | Voltas | Ciclos | Peso (kg) | Sem ICMS | Com ICMS |
 |---|---|---|---|---|---|---|---|---|
-| 1 | 152,4 | 9,0 | 1.117 | 11,99 | 35 mil | 31,43 | R$ 5.657,40 | … |
-| 2 | 152,4 | 9,0 | 1.117 | 11,99 | 35 mil | 31,43 | R$ 5.657,40 | … |
-| **Total** | | | | | | **62,86** | **R$ 11.314,80** | **…** |
+| 1 | 152,4 | 9,0 | 1.117 | 11,99 | 35 mil | 31,43 | R$ 4.243,05 | … |
+| 2 | 152,4 | 9,0 | 1.117 | 11,99 | 35 mil | 31,43 | R$ 4.243,05 | … |
+| **Total** | | | | | | **62,86** | **R$ 8.486,10** | **…** |
 
-Fonte: calculadora DOCO (doco-international.com/en/support/spring_calculator) + R$ 180/kg.
+Fonte: calculadora DOCO (doco-international.com/en/support/spring_calculator) + R$ 135/kg.
 
 ## PDF de cálculo (anexar no RD e no Omie)
 
