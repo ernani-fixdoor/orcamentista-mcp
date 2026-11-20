@@ -13,7 +13,9 @@
   - **Vendedor padrão** (`recomendacoes.codigo_vendedor`) = vendedor do orçamento.
   - `codigo_cliente_integracao` obrigatório: use `RD-<deal_id>`.
   O cadastro precisa ter UF. Se o Omie disser "Cliente sem a informação da UF", o problema é do cadastro: avise, não insista.
-- Cliente que **nunca comprou** na FixDoor (sem pedidos): pagamento à vista. Veja "Pagamento à vista" mais abaixo.
+- Cliente que **nunca comprou** na FixDoor (sem nenhum cadastro nem pedido): pagamento à vista. Veja "Pagamento à vista" mais abaixo. Cliente que já tem **outra filial** cadastrada (outro CNPJ da mesma razão social) conta como cliente que já comprou: 15 dias.
+- Endereço e CEP: se o `consultar_cnpj` não trouxer, busque em consulta pública do CNPJ. Contato, e-mail e telefone: o `rd_ler_negocio` pode devolver `contatos` vazio; use `rd_consulta_api` com caminho `organizations/<id da empresa>` (campo `contacts`).
+- Cliente que terá OS na MaxDock também é cadastrado no Omie da MaxDock (veja `omie-maxdock.md`).
 - Confira se a IE e o "contribuinte" do cadastro batem com o card. Se não baterem, avise: o cenário fiscal do Omie usa o cadastro.
 
 ## 2. Inclusão: `produtos/pedido:IncluirPedido`
@@ -39,7 +41,7 @@ Valores vistos em 30/10/2026 (referência, não fixos):
 | `det[].produto.valor_unitario` | unitário **com ICMS** de `calcular_precos` | |
 | `det[].ide.codigo_item_integracao` | `ORC-<deal_id>-<n>` | |
 | `det[].observacao.obs_item` | observações do item (aparecem impressas no pedido) | **tópicos com hífen, uma linha por tópico, com quebra de linha real `\n` e nunca `\|`** (no item o `\|` aparece visível; a API devolve a quebra como `\|` na leitura, mas o PDF sai certo). Molas: veja `molas.md` |
-| `frete.modalidade` | FOB `"1"` · CIF `"0"` · sem frete `"9"` | CIF com cotação → `frete.valor_frete` |
+| `frete.modalidade` | FOB `"1"` · CIF `"0"` · sem frete `"9"` | CIF com cotação → `frete.valor_frete`; CIF com veículo próprio → também `frete.veiculo_proprio: "S"` |
 | `observacoes.obs_venda` | texto padrão FixDoor preenchido | **quebras de linha = `|`** (é assim que os orçamentos atuais estão gravados) |
 
 **Pagamento à vista** (cliente que nunca comprou): o `IncluirPedido` recusa o código `"000"` e o `"001"` gera vencimento em 30 dias. Faça em dois passos:
