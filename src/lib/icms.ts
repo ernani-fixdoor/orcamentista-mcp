@@ -91,9 +91,10 @@ export function descreverCenario(c: Cenario): { titulo: string; descricao: strin
   return { titulo: "Contribuinte · uso e consumo", descricao: "FixDoor destaca o interestadual; o cliente recolhe o DIFAL, sem crédito.", nota: "Avalie se a porta pode ser classificada como ativo imobilizado (libera o CIAP)." };
 }
 
-export function precoLiquido(custo: number | null, peso: number | null, cmv: number): number | null {
+/** `acrescimo` = fração somada ao preço (0,2 = +20%); só se aplica a itens importados (ver precos.ts). */
+export function precoLiquido(custo: number | null, peso: number | null, cmv: number, acrescimo = 0): number | null {
   if (custo == null || peso == null || !(cmv > 0)) return null;
-  return arred((custo * peso) / cmv);
+  return arred(((custo * peso) / cmv) * (1 + acrescimo));
 }
 
 export function comIcms(liquido: number | null, aliq: number): number | null {

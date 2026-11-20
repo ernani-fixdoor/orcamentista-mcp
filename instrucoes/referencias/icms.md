@@ -5,9 +5,12 @@ O cálculo é feito pelo conector (`calcular_precos` e `aplicar_icms`), com as m
 Por enquanto vale só o **cliente final** (CMV da tabela, chave `cmv`). Não use preço de montador nem de fabricante.
 
 ```
-preço líquido (sem ICMS) = custo × peso ÷ CMV
+preço líquido (sem ICMS) = custo × peso ÷ CMV                  (item nacional)
+preço líquido (sem ICMS) = custo × peso ÷ CMV × (1 + acréscimo)   (item importado: origem 1, 2, 3 ou 8)
 preço com ICMS           = preço líquido ÷ (1 − alíquota que a FixDoor suporta)    ("por dentro")
 ```
+
+O **acréscimo de importados** (hoje **+20%**) é um parâmetro da tabela (`precos_parametros`, chave `acrescimo_importados`, editável na Gestão da Tabela de Preços). O conector já aplica esse acréscimo no `preco_liquido_sem_icms` dos itens importados e mostra o valor usado em `acrescimo_importados` (e, por item, em `acrescimo_aplicado`). **Não some o acréscimo de novo**, ele já está no preço. Item sem origem na tabela sai como nacional (sem acréscimo); o alerta mostra o valor alternativo para importado, já com o acréscimo.
 
 ## Alíquota embutida no preço (venda saindo do PR)
 
