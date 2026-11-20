@@ -69,16 +69,26 @@ Decida qual é o caso e diga isso à pessoa:
 | Caso | Onde | Preço |
 |---|---|---|
 | **Peças/itens de tabela** | FixDoor (pedido de venda) | `calcular_precos` (tabela, cliente final, com ICMS) |
-| **Equipamento novo**: porta seccional, abrigo de dock, portal de selamento | FixDoor; a mão de obra, se houver, entra **no próprio orçamento FixDoor** (depois é terceirizada) | **A pessoa informa o valor.** A skill aplica o ICMS com `aplicar_icms` |
-| **Peças + serviço** | Peças na FixDoor + serviço na MaxDock (OS), dois orçamentos que se referenciam | Peças pela tabela; serviço informado pela pessoa |
-| **Serviço avulso** | MaxDock (OS) | Informado pela pessoa |
+| **Equipamento novo**: porta seccional nova, portal de selamento novo (abrigo de dock) | FixDoor; **só nesses casos** a mão de obra, se houver, entra **no próprio orçamento FixDoor** (depois é terceirizada) | **A pessoa informa o valor.** A skill aplica o ICMS com `aplicar_icms` |
+| **Peças + serviço** (inclui troca de quadro, encoder, sensor etc. em equipamento existente) | Peças na FixDoor + serviço na MaxDock (OS), dois orçamentos que se referenciam | Peças pela tabela ou valor informado; serviço pela planilha de custo (veja abaixo) |
+| **Serviço avulso** | MaxDock (OS) | Planilha de custo ou valor informado pela pessoa |
 
 Regras de mão de obra (campo do card):
 - **"X", "não" ou vazio**: não há mão de obra. Não crie nada de serviço, nem na FixDoor nem na MaxDock. O texto da FixDoor usa "INSTALAÇÃO: caso não".
 - **Há mão de obra**: veja o campo **equipe de montagem**.
-  - **MaxDock**: serviço avulso ou vinculado a peças. Vai numa OS da MaxDock.
-  - **Empresa terceirizada**: procure a cotação do terceiro nas anotações. Em equipamento novo, o valor entra no orçamento FixDoor como mão de obra.
-- **Você não cota mão de obra.** Se a cotação não estiver no card, diga claramente: "precisa cotar a MaxDock e o terceiro". Peça o valor à pessoa ou deixe pendente, conforme a seção "Pendências".
+  - **MaxDock**: a mão de obra vai **sempre numa OS da MaxDock**, avulsa ou vinculada a peças. Só vai no pedido FixDoor quando o pedido tem porta seccional nova ou portal de selamento novo.
+  - **Empresa terceirizada**: procure a cotação do terceiro nas anotações. Só em porta seccional nova ou portal de selamento novo o valor entra no orçamento FixDoor como mão de obra.
+- **Mão de obra da MaxDock sem cotação: calcule pela "Planilha - Custo Serviços Mobilização".** Pergunte à pessoa os **dias**, a **distância em km** (ida; a planilha dobra) e se há **pernoite**. A coluna **INSTALAÇÃO** vale **só para instalação de equipamentos novos**. Para manutenção ou troca de peças em equipamento existente use a coluna **MANUTENÇÃO**.
+
+  | | Instalação | Manutenção |
+  |---|---|---|
+  | Diária | R$ 1.900,00 | R$ 2.700,00 |
+  | Km rodado | R$ 2,20 × km de ida e volta | R$ 2,20 × km de ida e volta |
+  | Almoço e jantar | R$ 45,00 cada, × 2 técnicos × dias | R$ 45,00 cada, × 2 técnicos × dias |
+  | Hospedagem | R$ 250,00 × dias | R$ 250,00 × dias |
+
+  Total = diária × dias + km + almoço + jantar + hospedagem. Sem pernoite, tire a hospedagem. Se a pessoa disser que a planilha mudou, use os valores dela. Mostre a conta na prévia.
+- Mão de obra de **terceiro** continua sendo cotação externa: você não cota. Se a cotação não estiver no card, diga claramente: "precisa cotar o terceiro". Peça o valor à pessoa ou deixe pendente, conforme a seção "Pendências".
 
 **Molas:** se o pedido tiver mola, siga tópico `molas`. O cálculo é feito pela calculadora DOCO (`calcular_mola`) e o preço é peso × R$ 180 sem ICMS, com o ICMS aplicado depois. Não use a tabela de preços para molas. Se faltar o peso da porta, pergunte.
 
@@ -92,7 +102,10 @@ Monte a lista de itens:
   - origem desconhecida.
 
   A tabela ainda está sendo revisada, então esses alertas são esperados. Quando a pessoa confirmar ou corrigir um preço, registre isso (veja "Aprender"). Por enquanto **não altere a tabela de preços**.
-- Itens fora da tabela ou de preço manual: peça o valor líquido e use `aplicar_icms`.
+- Itens fora da tabela, de preço manual ou marcados "revisar" ou "sem preço" (quadro de comando, encoder, sensor fotocélula etc.): peça o valor líquido sem ICMS e use `aplicar_icms`. Não calcule o preço a partir do custo.
+- **Confira cada código no Omie** com `geral/produtos:ConsultarProduto` (origem, NCM, tipo). Se o código que a pessoa digitou não existir, busque por descrição com `ListarProdutosResumido` (`filtrar_apenas_descricao` `"%TEXTO%"`) e proponha o mais próximo.
+- **Origem 2** (estrangeira, adquirida no mercado interno) no cadastro do Omie leva ICMS de **4%** no interestadual: use `aplicar_icms` com `importado: true` e avise a pessoa quando a origem divergir do esperado.
+- **Quadro de comando V7E inversor:** use por padrão o `00001039.2.009`. O `00002800.2.009` (0,75 kW) é só para porta pequena. Confira a potência na etiqueta do quadro atual antes de escolher.
 
 Apresente a **composição sugerida** (itens, quantidades, unitário com ICMS, total, alíquota usada e o porquê) e pergunte se atende ao que o cliente precisa. Ajuste até a pessoa concordar.
 
@@ -100,7 +113,7 @@ Apresente a **composição sugerida** (itens, quantidades, unitário com ICMS, t
 
 - **FOB**: o texto padrão diz FOB, com retirada em Pinhais/PR. No Omie, frete com modalidade "1". Não precisa cotação.
 - **INDICAÇÃO** (valor do card): FOB com indicação para faturamento direto entre a transportadora e o cliente. No Omie, modalidade "1".
-- **CIF**: o frete **precisa ser cotado**. Diga se é **com** ou **sem** descarga: procure nas anotações; se não estiver lá, pergunte. Se a cotação estiver nas anotações, use. Se não estiver, é pendência. No Omie, modalidade "0", com `valor_frete` quando houver.
+- **CIF**: o frete **precisa ser cotado**. Diga se é **com** ou **sem** descarga: procure nas anotações; se não estiver lá, pergunte. Se a cotação estiver nas anotações, use. Se não estiver, é pendência. No Omie, modalidade "0", com `valor_frete` quando houver. Se a pessoa disser **veículo próprio** (entrega pela própria FixDoor), acrescente `veiculo_proprio: "S"`.
 - **NÃO** (sem frete): modalidade "9".
 - **Locação (PTA, MUNC)**: leia as observações. Se o card pede o equipamento, é uma cotação externa: use o valor das notas ou deixe pendente. Se o cliente fornece o equipamento, mantenha a frase padrão "Cliente deve fornecer PTA...".
 
@@ -115,7 +128,8 @@ Apresente a **composição sugerida** (itens, quantidades, unitário com ICMS, t
    - pendências.
 2. Os campos em branco do texto padrão (prazo de peças, prazo de pagamento) **precisam ser preenchidos**. O prazo de pagamento vem do campo `PRAZO DE PAGAMENTO` do card; os demais, das regras aprendidas. Se não houver, pergunte. Não deixe em branco sem avisar.
 3. **IPI:** na prévia de orçamento FixDoor, inclua a tabela de conferência do IPI com a TIPI, conforme tópico `ipi`. Use **uma** chamada `consultar_tipi` com todos os NCMs.
-4. Com o **ok explícito**, crie no Omie, seguindo tópico `omie-fixdoor` e tópico `omie-maxdock`. Se o cliente não existir no Omie, cadastre-o (autorizado pelo Ernani) conforme tópico `omie-fixdoor`, com a tag "Cliente" e os dados do card do RD com prioridade; cliente novo paga à vista.
+4. Com o **ok explícito**, crie no Omie, seguindo tópico `omie-fixdoor` e tópico `omie-maxdock`. Se o cliente não existir no Omie, cadastre-o (autorizado pelo Ernani) conforme tópico `omie-fixdoor`, com a tag "Cliente" e os dados do card do RD com prioridade. O `consultar_cnpj` pode não trazer endereço e CEP: busque em consulta pública do CNPJ. Contato, e-mail e telefone saem da **empresa no RD**: o `rd_ler_negocio` pode devolver `contatos` vazio, então use `rd_consulta_api` com caminho `organizations/<id da empresa>` (campo `contacts`). Quando o pedido tiver OS da MaxDock, cadastre o cliente também no Omie da MaxDock. Cliente **sem nenhum cadastro** na FixDoor paga à vista; cliente que já tem **outra filial** (outro CNPJ da mesma razão social) conta como cliente que já comprou (15 dias).
+   Depois de criar a **OS MaxDock**, grave o vendedor com `servicos/os:AlterarOS` (`Cabecalho.nCodOS` e `Cabecalho.nCodVend`), conforme tópico `omie-maxdock`: a inclusão da OS não grava o vendedor.
 5. Confira o resultado: consulte o orçamento criado e compare total e itens com a prévia. Compare também o IPI calculado pelo Omie com a TIPI e aponte as divergências (⚠️).
 6. `orcamento_registrar` com `status: "criado_omie"`, os números do Omie, itens e pendências.
 

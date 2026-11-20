@@ -14,16 +14,16 @@ O mesmo cliente precisa existir **também no Omie da MaxDock**: os cadastros sã
 |---|---|---|
 | `Cabecalho.cCodIntOS` | `OS-RD-<deal_id>-<AAAAMMDDhhmm>` | obrigatório |
 | `Cabecalho.nCodCli` | código do cliente na MaxDock | |
-| `Cabecalho.nCodVend` | **por enquanto, vazio** (códigos ainda indisponíveis) | ver `resumo-card.md` |
+| `Cabecalho.nCodVend` | a inclusão **não grava** o vendedor: deixe vazio e grave depois (veja a seção 3) | ver `resumo-card.md` |
 | `Cabecalho.cEtapa` | `"00"` | orçamento (como a OS 1923) |
 | `Cabecalho.dDtPrevisao` | hoje + 15 dias | DD/MM/AAAA |
 | `Cabecalho.cCodParc` / `nQtdeParc` | conforme condição de pagamento | |
-| `InformacoesAdicionais.cCodCateg` | `"1.01.98"` (OS 1923) | copie da OS recente |
+| `InformacoesAdicionais.cCodCateg` | `"1.01.99"` para instalação ou manutenção em porta rápida (OS 1945); `"1.01.98"` na OS 1923 | copie da OS recente do mesmo tipo |
 | `InformacoesAdicionais.nCodCC` | `5223164741` (OS 1923) | copie da OS recente |
 | `InformacoesAdicionais.cCidPrestServ` | cidade do serviço, ex.: `"PINHAIS (PR)"` | |
-| `ServicosPrestados[].cDescServ` | descrição clara do serviço (o que, onde, quantas portas, equipe) | quebras de linha = `|` |
+| `ServicosPrestados[].cDescServ` | descrição clara do serviço (o que e onde, quantas portas). **Nunca** inclua dias de serviço, número de técnicos nem pernoite: esses dados servem só para o cálculo e para a anotação do card | quebras de linha = `|` |
 | `ServicosPrestados[].nCodServico` | código do serviço cadastrado, se houver | listar com `servicos/servico:ListarCadastroServico` |
-| `ServicosPrestados[].nQtde` / `nValUnit` | valor **informado pela pessoa** (a skill não cota mão de obra) | |
+| `ServicosPrestados[].nQtde` / `nValUnit` | valor informado pela pessoa ou calculado pela planilha de custo (veja `processo.md`, mão de obra) | |
 | `ServicosPrestados[].cTribServ` | `"A4"` | igual nas OS vistas |
 | `ServicosPrestados[].nCodServico` (ex.) | `5102342686` = `SRV00004` (manutenção em porta, OS 1923) | escolha o serviço cadastrado que corresponde ao pedido |
 | `Cabecalho.cCodParc` (ex.) | `"A15"` = 15 dias | conforme `PRAZO DE PAGAMENTO` do card |
@@ -31,8 +31,9 @@ O mesmo cliente precisa existir **também no Omie da MaxDock**: os cadastros sã
 
 **Locação de PTA/MUNC** fornecida pela MaxDock entra como uma linha de serviço própria ("Locação de Plataforma Elevatória Articulada"), com o valor da cotação. Sem cotação → pendência e tarefa no RD.
 
-Quando houver orçamento FixDoor ligado (peças + serviço), cite o número do pedido FixDoor na descrição ou observação da OS, e vice-versa.
+Quando houver orçamento FixDoor ligado (peças + serviço), cite o número do pedido FixDoor na descrição da OS ("Referente ao pedido FixDoor nº X") e, se possível, a OS no texto do pedido FixDoor.
 
 ## 3. Depois de incluir
 
-`servicos/os:ConsultarOS`: confira os valores; guarde `cNumOS`. Ele vai para o **título do card** (`rd_adicionar_numero_titulo`, empresa "maxdock" → 🟦). Para corrigir, use `servicos/os:AlterarOS`. Nunca inclua de novo.
+1. **Vendedor.** O usuário da API não acessa o cadastro de vendedores da MaxDock (`ListarVendedores` dá erro de permissão) e o `IncluirOS` ignora `nCodVend`. Rode `servicos/os:AlterarOS` com `{"Cabecalho": {"nCodOS": <nCodOS>, "nCodVend": <código>}}` (só essas duas tags, dentro de `Cabecalho`; numa tentativa com mais campos de identificação o Omie recusou). Código da **Renata na MaxDock: `5547276019`** (inferido das OS da NUTRIFRIOS; confirme o nome na tela da OS). Para outro vendedor, procure o `nCodVend` em OS recentes dele com `ListarOS` e confirme com a pessoa.
+2. `servicos/os:ConsultarOS`: confira os valores e o vendedor; guarde `cNumOS`. Ele vai para o **título do card** (`rd_adicionar_numero_titulo`, empresa "maxdock" → 🟦). Para corrigir, use `servicos/os:AlterarOS`. Nunca inclua de novo.
