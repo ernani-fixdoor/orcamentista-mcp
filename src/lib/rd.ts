@@ -270,6 +270,18 @@ export function corpoNovoNegocio(n: NovoNegocio) {
   };
 }
 
+/** Campo ITENS DA SOLICITAÇÃO: obrigatório nas etapas do funil COMERCIAL; sem ele o RD recusa (422) qualquer PUT no card. */
+export const CAMPO_ITENS_SOLICITACAO = "68f67acf567c110015b75265";
+
+/** Avisa se ITENS DA SOLICITAÇÃO não foi informado (o POST aceita, mas os PUTs seguintes falham com 422). */
+export function avisosCamposObrigatorios(n: NovoNegocio): string[] {
+  const c = n.campos?.find((x) => x.custom_field_id === CAMPO_ITENS_SOLICITACAO);
+  const v = c?.valor;
+  if (v === undefined || v === null || String(v).trim() === "")
+    return ["ITENS DA SOLICITAÇÃO (id 68f67acf567c110015b75265) não foi preenchido. É obrigatório nas etapas do funil: sem ele o RD recusa com erro 422 qualquer alteração do card (empresa, título, mover etapa). Preencha com rd_atualizar_campos antes de seguir."];
+  return [];
+}
+
 /**
  * Cria o card. Confere no retorno se a empresa e os contatos foram ligados; se não, tenta ligar com um PUT
  * e informa em `avisos` o que não ficou como pedido (nada é adivinhado em silêncio).
@@ -278,7 +290,7 @@ export async function criarNegocio(n: NovoNegocio) {
   let d: any = await rd("POST", "deals", { corpo: corpoNovoNegocio(n) });
   const id = String(d?._id ?? d?.id ?? "");
   if (!id) throw new Error("O RD não devolveu o id do card criado. Confira no RD se ele foi criado antes de repetir.");
-  const avisos: string[] = [];
+  const avisos: string[] = avisosCamposObrigatorios(n);
   const faltaEmpresa = n.empresa_id && String(d?.organization?._id ?? d?.organization?.id ?? "") !== n.empresa_id;
   const idsContatos = (d?.contacts ?? []).map((c: any) => String(c._id ?? c.id));
   const faltaContato = (n.contato_ids ?? []).filter((c) => !idsContatos.includes(c));

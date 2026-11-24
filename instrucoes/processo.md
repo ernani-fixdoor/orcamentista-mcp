@@ -7,7 +7,7 @@ O princípio é: **você prepara e sugere, a pessoa decide.** Nada é gravado no
 ## Ferramentas
 
 - **Conector Orçamentista** (MCP próprio): `rd_*` (RD Station), `consultar_cnpj`, `tabela_buscar_itens`, `calcular_precos`, `aplicar_icms`, `aprendizados_listar`, `aprendizado_propor`, `orcamento_registrar`, `orcamento_historico`.
-  - Card novo: `rd_criar_negocio` (título, etapa, responsável; `copiar_de_deal_id` copia empresa, contatos e responsável de outro card do mesmo cliente). Confira `avisos` no retorno.
+  - Card novo: `rd_criar_negocio` (título, etapa, responsável; `copiar_de_deal_id` copia empresa, contatos e responsável de outro card do mesmo cliente). Confira `avisos` no retorno. Preencha sempre o campo `ITENS DA SOLICITAÇÃO` (id `68f67acf567c110015b75265`) ao criar: é obrigatório e, sem ele, o RD recusa (422) qualquer alteração posterior do card.
   - Arquivos do card: `rd_listar_arquivos` (lista), `rd_baixar_arquivo` (lê), `rd_anexar_arquivo` (anexa por URL) e `rd_excluir_arquivo` (só com confirmação).
   - Anexo no Omie: `omie_anexar_arquivo` (pedido de venda da FixDoor ou OS da MaxDock, por URL https). O conector Omie oficial não envia arquivo local.
 - **Conector Omie** (oficial): `omie_executar` com `app_hash`:
