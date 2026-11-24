@@ -242,3 +242,58 @@ export function proximoDiaUtil(base = new Date()): string {
   do sp.setDate(sp.getDate() + 1); while (sp.getDay() === 0 || sp.getDay() === 6);
   return `${sp.getFullYear()}-${String(sp.getMonth() + 1).padStart(2, "0")}-${String(sp.getDate()).padStart(2, "0")}`;
 }
+
+// ---------- Criar card ----------
+export type NovoNegocio = {
+  nome: string;
+  etapa_id: string;
+  responsavel_id?: string;
+  empresa_id?: string;
+  contato_ids?: string[];
+  campos?: { custom_field_id: string; valor: unknown }[];
+};
+
+/** Corpo do POST /deals da API v1 do RD. Só inclui o que foi informado. */
+export function corpoNovoNegocio(n: NovoNegocio) {
+  const nome = String(n.nome ?? "").trim();
+  if (nome.length < 3) throw new Error("Informe o nome (título) do card, com pelo menos 3 caracteres.");
+  if (!n.etapa_id) throw new Error("Informe etapa_id (use rd_listar_funis).");
+  return {
+    deal: {
+      name: nome,
+      deal_stage_id: n.etapa_id,
+      ...(n.responsavel_id ? { user_id: n.responsavel_id } : {}),
+      ...(n.empresa_id ? { organization_id: n.empresa_id } : {}),
+      ...(n.contato_ids?.length ? { contacts_ids: n.contato_ids } : {}),
+      ...(n.campos?.length ? { deal_custom_fields: n.campos.map((c) => ({ custom_field_id: c.custom_field_id, value: c.valor })) } : {}),
+    },
+  };
+}
+
+/**
+ * Cria o card. Confere no retorno se a empresa e os contatos foram ligados; se não, tenta ligar com um PUT
+ * e informa em `avisos` o que não ficou como pedido (nada é adivinhado em silêncio).
+ */
+export async function criarNegocio(n: NovoNegocio) {
+  let d: any = await rd("POST", "deals", { corpo: corpoNovoNegocio(n) });
+  const id = String(d?._id ?? d?.id ?? "");
+  if (!id) throw new Error("O RD não devolveu o id do card criado. Confira no RD se ele foi criado antes de repetir.");
+  const avisos: string[] = [];
+  const faltaEmpresa = n.empresa_id && String(d?.organization?._id ?? d?.organization?.id ?? "") !== n.empresa_id;
+  const idsContatos = (d?.contacts ?? []).map((c: any) => String(c._id ?? c.id));
+  const faltaContato = (n.contato_ids ?? []).filter((c) => !idsContatos.includes(c));
+  if (faltaEmpresa || faltaContato.length) {
+    try {
+      d = await rd("PUT", `deals/${encodeURIComponent(id)}`, {
+        corpo: { deal: { ...(faltaEmpresa ? { organization_id: n.empresa_id } : {}), ...(faltaContato.length ? { contacts_ids: n.contato_ids } : {}) } },
+      });
+    } catch (e) { avisos.push(`Card criado, mas não consegui ligar a empresa/contatos: ${(e as Error).message}`); }
+    const conferido: any = await rd("GET", `deals/${encodeURIComponent(id)}`);
+    if (n.empresa_id && String(conferido?.organization?._id ?? conferido?.organization?.id ?? "") !== n.empresa_id) avisos.push("A empresa NÃO ficou ligada ao card: ligue no RD.");
+    const ids2 = (conferido?.contacts ?? []).map((c: any) => String(c._id ?? c.id));
+    const sem = (n.contato_ids ?? []).filter((c) => !ids2.includes(c));
+    if (sem.length) avisos.push(`Contatos NÃO ligados ao card: ${sem.join(", ")}. Ligue no RD.`);
+    d = conferido;
+  }
+  return { ...resumirNegocio(d), avisos };
+}

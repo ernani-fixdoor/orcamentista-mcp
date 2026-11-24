@@ -86,6 +86,19 @@ function registrar(server: any) {
       return lista.map((f: any) => ({ id: f._id ?? f.id, nome: f.name, etapas: (f.deal_stages ?? []).map((e: any) => ({ id: e._id ?? e.id, nome: e.name, ordem: e.order })) }));
     }));
 
+  server.tool("rd_criar_negocio", "Cria um card novo no RD Station CRM. Informe o título (nome), a etapa (etapa_id de rd_listar_funis; para orçamento use a etapa ORÇAMENTO 6893ae5d35e1060014fea7ac), o responsável e, opcionalmente, a empresa (empresa_id), os contatos (contato_ids) e campos personalizados (ids de rd_listar_campos). Para um cliente que já tem card, passe copiar_de_deal_id: a empresa, os contatos e o responsável são copiados desse card (valores informados explicitamente prevalecem). Não copia produtos nem anotações. Confira o resultado: `avisos` lista o que não ficou ligado.",
+    { nome: z.string().min(3), etapa_id: z.string(), responsavel_id: z.string().optional(), empresa_id: z.string().optional(), contato_ids: z.array(z.string()).optional(), campos: z.array(z.object({ custom_field_id: z.string(), valor: z.any() })).optional(), copiar_de_deal_id: z.string().optional() },
+    seguro(async (a: any) => {
+      let { empresa_id, contato_ids, responsavel_id } = a;
+      if (a.copiar_de_deal_id) {
+        const o: any = await rd.lerNegocio(a.copiar_de_deal_id);
+        empresa_id = empresa_id ?? (o?.organization?._id ?? o?.organization?.id);
+        contato_ids = contato_ids ?? (o?.contacts ?? []).map((c: any) => String(c._id ?? c.id));
+        responsavel_id = responsavel_id ?? (o?.user?._id ?? o?.user?.id);
+      }
+      return rd.criarNegocio({ nome: a.nome, etapa_id: a.etapa_id, responsavel_id, empresa_id: empresa_id ? String(empresa_id) : undefined, contato_ids, campos: a.campos });
+    }));
+
   server.tool("rd_mover_negocio", "Move o card para outra etapa (ex.: etapa de aprovação). Use o id da etapa vindo de rd_listar_funis.",
     { deal_id: z.string(), etapa_id: z.string() },
     seguro(async ({ deal_id, etapa_id }: any) => rd.resumirNegocio(await rd.moverNegocio(deal_id, etapa_id))));
