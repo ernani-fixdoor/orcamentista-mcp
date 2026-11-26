@@ -162,7 +162,7 @@ Se faltar cotação de frete, de mão de obra (MaxDock ou terceiro) ou de locaç
    - Se anexar falhar, porque o RD v2 não está autorizado ou o link expirou, gere o link de novo, tente mais uma vez e avise se não der. A falha no anexo não impede mover o card.
    - **Se houve cálculo de mola**, anexe também o PDF de cálculo da DOCO (`pdf_calculo_url` da opção escolhida em `calcular_mola`), conforme tópico `molas`: no card com `rd_anexar_arquivo` (`Calculo da mola - Pedido 5712 (DOCO).pdf`) e no pedido do Omie com `omie_anexar_arquivo`.
 6. Mova o card para a etapa **APROVAÇÃO** (id `69408c3c404dbe001655f7dd`) com `rd_mover_negocio`. Mova **sempre**, mesmo que o Ernani seja quem está pedindo.
-   Em seguida troque o **responsável do card** com `rd_alterar_responsavel`, conforme a região do cliente: Sul (PR, SC, RS) = Renata (`689653b559aead001fe6afd9`); Nordeste = Ana Julia Goudel (`6997091a3b0ff9001dee2981`); Sudeste, Centro-Oeste e Norte = Yasmin Pinheiro (`6893ae1fb5e2a3001b344012`). Os ids saem de `rd_consulta_api` com caminho `users`.
+   Na aprovação o **responsável do card fica sempre o Ernani Brescianini** (`69626b8422fabb00138d985b`): **não troque o responsável por região**. Quem pede o orçamento já deixa o vendedor responsável indicado no card (anotação ou campos), para o Ernani não esquecer quando o card passar para a análise de proposta. Se o card estiver com outro responsável, use `rd_alterar_responsavel` para devolvê-lo ao Ernani e cite o vendedor na anotação-resumo.
 7. `orcamento_registrar` com `status: "em_aprovacao"`.
 8. Feche com um resumo curto para a pessoa: o que foi criado, o que ficou pendente e os links ou números.
 
